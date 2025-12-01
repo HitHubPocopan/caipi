@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Reservas - Cabañas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- VISTA PRINCIPAL: Tarjetas de cabañas -->
+  <div id="main-view" class="view">
+    <div class="header">
+      <h1>Gestión de Reservas</h1>
+      <p class="subtitle">Sistema de administración de cabañas turísticas</p>
+    </div>
+
+    <!-- HEATMAP DE OCUPACIÓN MENSUAL -->
+    <div class="ocupacion-heatmap-container">
+      <h2>Ocupación del Mes</h2>
+      <div class="heatmap-mes-nav">
+        <button class="btn-mes-nav" id="btn-prev-mes">◀</button>
+        <div class="ocupacion-heatmap-mes" id="ocupacion-mes"></div>
+        <button class="btn-mes-nav" id="btn-next-mes">▶</button>
+      </div>
+      <div class="ocupacion-heatmap-wrapper">
+        <div class="ocupacion-heatmap-labels">
+          <div class="label-cabana" id="ocupacion-labels"></div>
+        </div>
+        <div class="ocupacion-heatmap-grid" id="ocupacion-heatmap">
+          <!-- Se generará con JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="cabanas-grid" id="cabanas-grid">
+      <!-- Las tarjetas se generarán con JavaScript -->
+    </div>
+  </div>
+
+  <!-- VISTA CALENDARIO: Calendario mensual de cabaña seleccionada -->
+  <div id="edit-cabana-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Editar Cabaña</h3>
+        <button class="btn-close" onclick="closeEditCabanaModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-cabana">
+          <input type="hidden" id="edit-cabana-id">
+          
+          <label for="edit-cabana-numero">Número de Cabaña:</label>
+          <input type="number" id="edit-cabana-numero" required disabled>
+          
+          <label for="edit-cabana-capacidad">Capacidad (personas):</label>
+          <input type="number" id="edit-cabana-capacidad" min="1" required>
+          
+          <label for="edit-cabana-precio">Precio Base ($/noche):</label>
+          <input type="number" id="edit-cabana-precio" min="0" step="0.01" required>
+          
+          <label for="edit-cabana-descripcion">Descripción:</label>
+          <textarea id="edit-cabana-descripcion" rows="3"></textarea>
+          
+          <div class="modal-buttons">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <button type="button" class="btn btn-secondary" onclick="closeEditCabanaModal()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="calendar-view" class="view hidden">
+    <div class="calendar-header">
+      <button id="btn-volver" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="calendar-title">
+        <h2 id="cabana-nombre"></h2>
+        <p id="mes-anio"></p>
+      </div>
+      <button id="btn-add-reserva" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Agregar Reserva
+      </button>
+    </div>
+
+    <div class="calendar-nav">
+      <button id="btn-prev-mes" class="btn btn-outline">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <span id="current-mes-anio" class="mes-anio-display"></span>
+      <button id="btn-next-mes" class="btn btn-outline">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="calendar-weekdays">
+      <div class="weekday">Lun</div>
+      <div class="weekday">Mar</div>
+      <div class="weekday">Mié</div>
+      <div class="weekday">Jue</div>
+      <div class="weekday">Vie</div>
+      <div class="weekday">Sáb</div>
+      <div class="weekday">Dom</div>
+    </div>
+
+    <div class="calendar-grid" id="calendar-grid">
+      <!-- Los días se generarán con JavaScript -->
+    </div>
+  </div>
+
+  <!-- MODAL: Agregar/Editar Reserva -->
+  <div id="modal-reserva" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-titulo">Nueva Reserva</h3>
+        <button id="btn-close-modal" class="btn-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="form-reserva" class="form-reserva">
+        <!-- Sección: Datos del Cliente -->
+        <div class="form-section">
+          <h4>Datos del Cliente</h4>
+          <div class="form-group">
+            <label for="cliente-nombre">Nombre del Cliente *</label>
+            <input type="text" id="cliente-nombre" placeholder="Ej: Juan García" required>
+          </div>
+          <div class="form-group">
+            <label for="cliente-telefono">Teléfono *</label>
+            <input type="tel" id="cliente-telefono" placeholder="Ej: +54 9 11 1234567" required>
+          </div>
+          <div class="form-group">
+            <label for="cantidad-personas">Cantidad de Personas *</label>
+            <input type="number" id="cantidad-personas" min="1" placeholder="Ej: 4" required>
+          </div>
+        </div>
+
+        <!-- Sección: Fechas y Días -->
+        <div class="form-section">
+          <h4>Fechas y Ocupación</h4>
+          <div class="form-group">
+            <label for="fecha-inicio">Fecha Inicio *</label>
+            <input type="date" id="fecha-inicio" required>
+          </div>
+          <div class="form-group">
+            <label for="fecha-fin">Fecha Fin *</label>
+            <input type="date" id="fecha-fin" required>
+          </div>
+          
+          <div id="ocupacion-dias" class="ocupacion-dias">
+            <!-- Se generarán los controles AM/PM aquí -->
+          </div>
+        </div>
+
+        <!-- Sección: Pago -->
+        <div class="form-section">
+          <h4>Información de Pago</h4>
+          <div class="form-group">
+            <label for="estado-pago">Estado de Pago *</label>
+            <select id="estado-pago" required>
+              <option value="pendiente">Pendiente</option>
+              <option value="pagado">Pagado</option>
+              <option value="parcial">Parcial</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="monto-total">Monto Total ($) *</label>
+              <input type="number" id="monto-total" min="0" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label for="monto-pagado">Monto Pagado ($)</label>
+              <input type="number" id="monto-pagado" min="0" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="notas">Notas Adicionales</label>
+            <textarea id="notas" placeholder="Ej: Requiere cuna para bebé" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btn-cancel-modal" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Reserva</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Editar Reserva (click en día ocupado) -->
+  <div id="modal-edit-reserva" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Editar Reserva</h3>
+        <button id="btn-close-edit-modal" class="btn-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="form-edit-reserva" class="form-reserva">
+        <div class="form-section">
+          <h4>Datos del Cliente</h4>
+          <div class="form-group">
+            <label for="edit-cliente-nombre">Nombre del Cliente *</label>
+            <input type="text" id="edit-cliente-nombre" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-cliente-telefono">Teléfono *</label>
+            <input type="tel" id="edit-cliente-telefono" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-cantidad-personas">Cantidad de Personas *</label>
+            <input type="number" id="edit-cantidad-personas" min="1" required>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Fechas y Ocupación</h4>
+          <div class="form-group">
+            <label for="edit-fecha-inicio">Fecha Inicio *</label>
+            <input type="date" id="edit-fecha-inicio" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-fecha-fin">Fecha Fin *</label>
+            <input type="date" id="edit-fecha-fin" required>
+          </div>
+          <div id="edit-ocupacion-dias" class="ocupacion-dias"></div>
+        </div>
+
+        <div class="form-section">
+          <h4>Información de Pago</h4>
+          <div class="form-group">
+            <label for="edit-estado-pago">Estado de Pago *</label>
+            <select id="edit-estado-pago" required>
+              <option value="pendiente">Pendiente</option>
+              <option value="pagado">Pagado</option>
+              <option value="parcial">Parcial</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-monto-total">Monto Total ($) *</label>
+              <input type="number" id="edit-monto-total" min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-monto-pagado">Monto Pagado ($)</label>
+              <input type="number" id="edit-monto-pagado" min="0" step="0.01">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="edit-notas">Notas Adicionales</label>
+            <textarea id="edit-notas" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btn-delete-reserva" class="btn btn-danger">Eliminar Reserva</button>
+          <button type="button" id="btn-cancel-edit-modal" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast para notificaciones -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="supabase.js"></script>
+  <script src="calendar.js"></script>
+  <script src="reservas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
