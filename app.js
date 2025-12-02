@@ -249,12 +249,32 @@ async function handleEditCabanaSubmit(e) {
   const precio_base = parseFloat(document.getElementById('edit-cabana-precio').value);
   const descripcion = document.getElementById('edit-cabana-descripcion').value;
 
+  if (!cabanaId) {
+    alert('Error: ID de cabaña no encontrado');
+    return;
+  }
+
+  if (isNaN(capacidad) || capacidad < 1) {
+    alert('Error: Capacidad debe ser un número positivo');
+    return;
+  }
+
+  if (isNaN(precio_base) || precio_base < 0) {
+    alert('Error: Precio debe ser un número válido');
+    return;
+  }
+
   try {
-    await updateCabana(cabanaId, {
+    const result = await updateCabana(cabanaId, {
       capacidad,
       precio_base,
       descripcion
     });
+
+    if (!result) {
+      alert('Error: No se recibió respuesta del servidor');
+      return;
+    }
 
     alert('Cabaña actualizada correctamente');
     closeEditCabanaModal();
@@ -280,26 +300,50 @@ function goBackFromClientes() {
 
 async function renderClientesList() {
   try {
-    const clientes = await getAllClientes();
+    const clientesConReservas = await getClientesWithReservas();
     const clientesList = document.getElementById('clientes-list');
     
-    if (clientes.length === 0) {
+    if (clientesConReservas.length === 0) {
       clientesList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay clientes registrados</p>';
       return;
     }
 
-    let html = '<div class="clientes-table-header">';
-    html += '<div>Nombre</div>';
-    html += '<div>Teléfono</div>';
-    html += '<div>Registrado</div>';
-    html += '</div>';
+    let html = '';
 
-    clientes.forEach(cliente => {
-      const fecha = new Date(cliente.created_at).toLocaleDateString('es-AR');
-      html += '<div class="cliente-card">';
-      html += `<div class="cliente-nombre">${cliente.nombre}</div>`;
-      html += `<div class="cliente-telefono">${cliente.telefono}</div>`;
-      html += `<div class="cliente-fecha">${fecha}</div>`;
+    clientesConReservas.forEach(cliente => {
+      const fechaRegistro = new Date(cliente.created_at).toLocaleDateString('es-AR');
+      html += '<div class="cliente-section">';
+      html += '<div class="cliente-header">';
+      html += `<h3>${cliente.nombre}</h3>`;
+      html += `<p class="cliente-phone"><i class="fas fa-phone"></i> ${cliente.telefono}</p>`;
+      html += `<p class="cliente-date"><i class="fas fa-calendar"></i> Registrado: ${fechaRegistro}</p>`;
+      html += '</div>';
+      
+      if (cliente.reservas && cliente.reservas.length > 0) {
+        html += '<div class="cliente-reservas">';
+        html += '<h4>Reservas</h4>';
+        html += '<div class="reservas-list">';
+        
+        cliente.reservas.forEach(reserva => {
+          const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
+          const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
+          const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+          
+          html += '<div class="reserva-item">';
+          html += `<span class="reserva-cabin">${cabin}</span>`;
+          html += `<span class="reserva-dates">`;
+          html += `<i class="fas fa-sign-in-alt"></i> ${entrada}`;
+          html += ` <i class="fas fa-sign-out-alt"></i> ${salida}`;
+          html += `</span>`;
+          html += `<span class="reserva-personas">${reserva.cantidad_personas} ${reserva.cantidad_personas === 1 ? 'persona' : 'personas'}</span>`;
+          html += '</div>';
+        });
+        
+        html += '</div></div>';
+      } else {
+        html += '<div class="sin-reservas">Sin reservas</div>';
+      }
+      
       html += '</div>';
     });
 

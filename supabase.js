@@ -99,6 +99,40 @@ async function getAllClientes() {
   }
 }
 
+async function getClientesWithReservas() {
+  try {
+    const { data: clientes, error: clientesError } = await supabase
+      .from('clientes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (clientesError) {
+      console.error('Error al obtener clientes:', clientesError);
+      throw clientesError;
+    }
+
+    const { data: reservas, error: reservasError } = await supabase
+      .from('reservas')
+      .select('*')
+      .order('fecha_inicio', { ascending: false });
+
+    if (reservasError) {
+      console.error('Error al obtener reservas:', reservasError);
+      throw reservasError;
+    }
+
+    const clientesConReservas = clientes.map(cliente => ({
+      ...cliente,
+      reservas: (reservas || []).filter(r => r.cliente_telefono === cliente.telefono)
+    }));
+
+    return clientesConReservas || [];
+  } catch (error) {
+    console.error('Error en getClientesWithReservas:', error);
+    throw error;
+  }
+}
+
 async function getReservasByMonth(cabanaId, year, month) {
   try {
     const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0];

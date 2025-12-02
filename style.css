@@ -186,68 +186,107 @@ body {
 
 .clientes-table {
   display: grid;
-  gap: 10px;
+  gap: 20px;
 }
 
-.cliente-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+.cliente-section {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.cliente-card:hover {
+.cliente-section:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
-.cliente-nombre {
-  font-weight: bold;
-  font-size: 1rem;
+.cliente-header {
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.cliente-header h3 {
+  margin: 0 0 8px 0;
+  color: #1a1a1a;
+  font-size: 1.3em;
+}
+
+.cliente-phone, .cliente-date {
+  margin: 5px 0;
   color: #333;
+  font-size: 0.9em;
 }
 
-.cliente-telefono {
-  color: #666;
-  font-size: 0.95rem;
+.cliente-phone i, .cliente-date i {
+  margin-right: 8px;
+  color: #4CAF50;
 }
 
-.cliente-fecha {
-  color: #999;
-  font-size: 0.85rem;
-  text-align: right;
+.cliente-reservas h4 {
+  margin: 10px 0;
+  color: #1a1a1a;
+  font-size: 1em;
 }
 
-.clientes-table-header {
+.reservas-list {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 10px;
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border-radius: 8px;
+  gap: 12px;
+}
+
+.reserva-item {
+  background: white;
+  border-left: 4px solid #4CAF50;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.reserva-cabin {
   font-weight: bold;
-  margin-bottom: 10px;
+  color: #2196F3;
+  min-width: 80px;
 }
 
-@media (max-width: 768px) {
-  .cliente-card {
-    grid-template-columns: 1fr;
-  }
-
-  .cliente-fecha {
-    text-align: left;
-  }
-
-  .clientes-table-header {
-    grid-template-columns: 1fr;
-  }
+.reserva-dates {
+  flex: 1;
+  margin: 0 15px;
+  color: #555;
+  font-size: 0.9em;
 }
+
+.reserva-dates i {
+  margin-right: 4px;
+}
+
+.reserva-personas {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.sin-reservas {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  font-style: italic;
+}
+
+
+
+
+
+
+
+
 
 .ocupacion-heatmap-mes {
   text-align: center;

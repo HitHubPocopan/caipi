@@ -338,6 +338,7 @@ function previousMonthCalendar() {
   if (displayMonth > currentMonth) {
     calendarMonthOffset--;
     loadCalendar();
+    updateCalendarTitle();
   }
 }
 
@@ -349,6 +350,7 @@ function nextMonthCalendar() {
   if (calendarMonthOffset < 11) {
     calendarMonthOffset++;
     loadCalendar();
+    updateCalendarTitle();
   }
 }
 
