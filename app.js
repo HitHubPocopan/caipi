@@ -173,6 +173,8 @@ async function loadCalendar() {
     if (month === 0) month = 12;
   }
 
+  currentDate = new Date(year, month - 1, 1);
+
   allReservas = await getReservasByMonth(currentCabana.id, year, month);
 
   allDiasReserva = [];
