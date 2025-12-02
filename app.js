@@ -34,23 +34,15 @@ function renderCabanas() {
       <h3>Cabaña #${cabana.numero}</h3>
       <div class="cabana-info">
         <p><i class="fas fa-door-open"></i> Capacidad: ${cabana.capacidad} personas</p>
-        <p><i class="fas fa-dollar-sign"></i> $${cabana.precio_base}/noche</p>
         ${cabana.descripcion ? `<p><i class="fas fa-info-circle"></i> ${cabana.descripcion}</p>` : ''}
       </div>
       <div class="cabana-status disponible">Disponible</div>
       <div class="cabana-buttons">
-        <button class="btn-editar-cabana">
-          <i class="fas fa-edit"></i> Editar
-        </button>
         <button class="btn-ver-calendario">
           <i class="fas fa-calendar-alt"></i> Ver Calendario
         </button>
       </div>
     `;
-
-    card.querySelector('.btn-editar-cabana').addEventListener('click', () => {
-      openEditCabanaModal(cabana);
-    });
 
     card.querySelector('.btn-ver-calendario').addEventListener('click', () => {
       openCalendarView(cabana);
