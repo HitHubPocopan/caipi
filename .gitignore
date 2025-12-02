@@ -3,6 +3,12 @@ node_modules/
 .env.local
 .env.*.local
 dist/
+tests/
+playwright.config.ts
+package.json
+package-lock.json
+test-results/
+.playwright/
 build/
 *.log
 .DS_Store
