@@ -356,5 +356,13 @@ function nextMonthCalendar() {
 
 function updateCalendarTitle() {
   const mesAnio = getMonthYear(currentDate.getFullYear(), currentDate.getMonth() + 1);
-  document.getElementById('current-mes-anio').textContent = mesAnio;
+  const currentMesElement = document.getElementById('current-mes-anio');
+  const mesElement = document.getElementById('mes-anio');
+  
+  if (currentMesElement) {
+    currentMesElement.textContent = mesAnio;
+  }
+  if (mesElement) {
+    mesElement.textContent = mesAnio;
+  }
 }
