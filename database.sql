@@ -1,4 +1,13 @@
 -- Crear tabla de cabañas
+CREATE TABLE clientes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  telefono VARCHAR(20) NOT NULL,
+  email VARCHAR(255),
+  created_at TIMESTAMP DEFAULT now(),
+  UNIQUE(telefono)
+);
+
 CREATE TABLE cabanas (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   numero INTEGER UNIQUE NOT NULL,

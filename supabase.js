@@ -27,22 +27,76 @@ async function getCabanas() {
 }
 
 async function updateCabana(cabanaId, data) {
-  const { data: result, error } = await supabase
-    .from('cabanas')
-    .update({
-      capacidad: data.capacidad,
-      precio_base: data.precio_base,
-      descripcion: data.descripcion,
-      updated_at: new Date()
-    })
-    .eq('id', cabanaId);
+  try {
+    const { data: result, error } = await supabase
+      .from('cabanas')
+      .update({
+        capacidad: parseInt(data.capacidad),
+        precio_base: parseFloat(data.precio_base),
+        descripcion: data.descripcion || ''
+      })
+      .eq('id', cabanaId)
+      .select();
 
-  if (error) {
-    console.error('Error al actualizar cabaña:', error);
+    if (error) {
+      console.error('Error al actualizar cabaña:', error);
+      throw new Error(error.message || 'Error desconocido al actualizar cabaña');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Excepción en updateCabana:', error);
     throw error;
   }
+}
 
-  return result;
+async function getOrCreateCliente(nombre, telefono) {
+  try {
+    const { data: existing, error: queryError } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('telefono', telefono)
+      .single();
+
+    if (existing) {
+      return existing;
+    }
+
+    const { data: newCliente, error: createError } = await supabase
+      .from('clientes')
+      .insert({ nombre, telefono })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error al crear cliente:', createError);
+      throw createError;
+    }
+
+    return newCliente;
+  } catch (error) {
+    console.error('Error en getOrCreateCliente:', error);
+    throw error;
+  }
+}
+
+async function getAllClientes() {
+  try {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener clientes:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error en getAllClientes:', error);
+    throw error;
+  }
 }
 
 async function getReservasByMonth(cabanaId, year, month) {
@@ -117,6 +171,8 @@ async function checkOverlap(cabanaId, fechaInicio, fechaFin, excludeReservaId = 
 
 async function createReserva(cabanaId, clienteNombre, clienteTelefono, cantidadPersonas, fechaInicio, fechaFin, estadoPago, montoTotal, montoPagado, notas, diasOcupacion) {
   try {
+    await getOrCreateCliente(clienteNombre, clienteTelefono);
+
     const { data: newReserva, error: errorReserva } = await supabase
       .from('reservas')
       .insert([

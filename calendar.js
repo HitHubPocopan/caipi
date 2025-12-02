@@ -1,4 +1,5 @@
 let currentDate = new Date();
+let calendarMonthOffset = 0;
 let selectedDays = {};
 let currentCabana = null;
 
@@ -326,6 +327,29 @@ function parseDate(dateStr) {
 function getMonthYear(year, month) {
   const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   return `${months[month - 1]} ${year}`;
+}
+
+function previousMonthCalendar() {
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+  
+  const displayMonth = currentMonth + calendarMonthOffset;
+  if (displayMonth > currentMonth) {
+    calendarMonthOffset--;
+    loadCalendar();
+  }
+}
+
+function nextMonthCalendar() {
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+  
+  if (calendarMonthOffset < 11) {
+    calendarMonthOffset++;
+    loadCalendar();
+  }
 }
 
 function updateCalendarTitle() {

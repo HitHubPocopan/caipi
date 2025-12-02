@@ -34,6 +34,12 @@
 
     </div>
 
+    <div class="main-buttons">
+      <button id="btn-ver-clientes" class="btn btn-info">
+        <i class="fas fa-users"></i> Clientes
+      </button>
+    </div>
+
     <div class="cabanas-grid" id="cabanas-grid">
       <!-- Las tarjetas se generarán con JavaScript -->
     </div>
@@ -71,6 +77,20 @@
     </div>
   </div>
 
+  <div id="clientes-view" class="view hidden">
+    <div class="clientes-header">
+      <button id="btn-volver-clientes" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <h2>Lista de Clientes</h2>
+    </div>
+    <div class="clientes-container">
+      <div id="clientes-list" class="clientes-table">
+        <!-- Se generará con JavaScript -->
+      </div>
+    </div>
+  </div>
+
   <div id="calendar-view" class="view hidden">
     <div class="calendar-header">
       <button id="btn-volver" class="btn btn-secondary">
@@ -86,11 +106,11 @@
     </div>
 
     <div class="calendar-nav">
-      <button id="btn-prev-mes" class="btn btn-outline">
+      <button id="btn-prev-mes-calendar" class="btn btn-outline">
         <i class="fas fa-chevron-left"></i>
       </button>
       <span id="current-mes-anio" class="mes-anio-display"></span>
-      <button id="btn-next-mes" class="btn btn-outline">
+      <button id="btn-next-mes-calendar" class="btn btn-outline">
         <i class="fas fa-chevron-right"></i>
       </button>
     </div>

@@ -163,8 +163,15 @@ async function openCalendarView(cabana) {
 async function loadCalendar() {
   if (!currentCabana) return;
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1;
+  let year = currentDate.getFullYear();
+  let month = currentDate.getMonth() + 1;
+
+  month += calendarMonthOffset;
+  if (month > 12) {
+    year += Math.floor(month / 12);
+    month = month % 12;
+    if (month === 0) month = 12;
+  }
 
   allReservas = await getReservasByMonth(currentCabana.id, year, month);
 
@@ -175,6 +182,7 @@ async function loadCalendar() {
   }
 
   generateCalendar(year, month, allReservas, allDiasReserva);
+  updateCalendarTitle();
 }
 
 function goBackToMain() {
@@ -259,10 +267,57 @@ async function handleEditCabanaSubmit(e) {
   }
 }
 
+async function openClientesView() {
+  document.getElementById('main-view').classList.add('hidden');
+  document.getElementById('clientes-view').classList.remove('hidden');
+  await renderClientesList();
+}
+
+function goBackFromClientes() {
+  document.getElementById('clientes-view').classList.add('hidden');
+  document.getElementById('main-view').classList.remove('hidden');
+}
+
+async function renderClientesList() {
+  try {
+    const clientes = await getAllClientes();
+    const clientesList = document.getElementById('clientes-list');
+    
+    if (clientes.length === 0) {
+      clientesList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay clientes registrados</p>';
+      return;
+    }
+
+    let html = '<div class="clientes-table-header">';
+    html += '<div>Nombre</div>';
+    html += '<div>Teléfono</div>';
+    html += '<div>Registrado</div>';
+    html += '</div>';
+
+    clientes.forEach(cliente => {
+      const fecha = new Date(cliente.created_at).toLocaleDateString('es-AR');
+      html += '<div class="cliente-card">';
+      html += `<div class="cliente-nombre">${cliente.nombre}</div>`;
+      html += `<div class="cliente-telefono">${cliente.telefono}</div>`;
+      html += `<div class="cliente-fecha">${fecha}</div>`;
+      html += '</div>';
+    });
+
+    clientesList.innerHTML = html;
+  } catch (error) {
+    console.error('Error al cargar clientes:', error);
+    alert('Error al cargar la lista de clientes');
+  }
+}
+
 function setupEventListeners() {
   document.getElementById('btn-volver').addEventListener('click', goBackToMain);
   document.getElementById('btn-prev-mes').addEventListener('click', previousMonth);
   document.getElementById('btn-next-mes').addEventListener('click', nextMonth);
+  document.getElementById('btn-prev-mes-calendar').addEventListener('click', previousMonthCalendar);
+  document.getElementById('btn-next-mes-calendar').addEventListener('click', nextMonthCalendar);
+  document.getElementById('btn-ver-clientes').addEventListener('click', openClientesView);
+  document.getElementById('btn-volver-clientes').addEventListener('click', goBackFromClientes);
   document.getElementById('btn-add-reserva').addEventListener('click', openAddReservaModal);
 
   document.getElementById('btn-close-modal').addEventListener('click', closeAddReservaModal);
