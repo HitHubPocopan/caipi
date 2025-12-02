@@ -335,7 +335,7 @@ function previousMonthCalendar() {
   const currentYear = today.getFullYear();
   
   const displayMonth = currentMonth + calendarMonthOffset;
-  if (displayMonth > currentMonth) {
+  if (displayMonth >= currentMonth) {
     calendarMonthOffset--;
     loadCalendar();
     updateCalendarTitle();
