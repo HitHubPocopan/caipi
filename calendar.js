@@ -330,28 +330,15 @@ function getMonthYear(year, month) {
 }
 
 function previousMonthCalendar() {
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentYear = today.getFullYear();
-  
-  const displayMonth = currentMonth + calendarMonthOffset;
-  if (displayMonth >= currentMonth) {
-    calendarMonthOffset--;
-    loadCalendar();
-    updateCalendarTitle();
-  }
+  calendarMonthOffset--;
+  loadCalendar();
+  updateCalendarTitle();
 }
 
 function nextMonthCalendar() {
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentYear = today.getFullYear();
-  
-  if (calendarMonthOffset < 11) {
-    calendarMonthOffset++;
-    loadCalendar();
-    updateCalendarTitle();
-  }
+  calendarMonthOffset++;
+  loadCalendar();
+  updateCalendarTitle();
 }
 
 function updateCalendarTitle() {

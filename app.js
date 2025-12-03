@@ -140,6 +140,7 @@ async function openCalendarView(cabana) {
   currentCabana = cabana;
   selectedDays = {};
   lastSelectedDate = null;
+  calendarMonthOffset = 0;
 
   document.getElementById('main-view').classList.add('hidden');
   document.getElementById('calendar-view').classList.remove('hidden');
@@ -159,10 +160,15 @@ async function loadCalendar() {
   let month = currentDate.getMonth() + 1;
 
   month += calendarMonthOffset;
-  if (month > 12) {
-    year += Math.floor(month / 12);
-    month = month % 12;
-    if (month === 0) month = 12;
+  
+  while (month > 12) {
+    year++;
+    month -= 12;
+  }
+  
+  while (month < 1) {
+    year--;
+    month += 12;
   }
 
   currentDate = new Date(year, month - 1, 1);
