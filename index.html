@@ -6,6 +6,7 @@
   <title>Gestión de Reservas - Cabañas</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <!-- PANTALLA DE LOGIN -->
@@ -102,11 +103,46 @@
       <button id="btn-volver-clientes" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> Volver
       </button>
-      <h2>Lista de Clientes</h2>
+      <h2>Gestión de Clientes</h2>
+      <button id="btn-export-clientes" class="btn btn-primary">
+        <i class="fas fa-download"></i> Exportar Excel
+      </button>
     </div>
-    <div class="clientes-container">
-      <div id="clientes-list" class="clientes-table">
-        <!-- Se generará con JavaScript -->
+    
+    <div class="tabs-container">
+      <div class="tabs-nav">
+        <button class="tab-button active" data-tab="tab-clientes">
+          <i class="fas fa-users"></i> Clientes
+        </button>
+        <button class="tab-button" data-tab="tab-notas">
+          <i class="fas fa-sticky-note"></i> Notas
+        </button>
+        <button class="tab-button" data-tab="tab-pagos">
+          <i class="fas fa-credit-card"></i> Pagos
+        </button>
+      </div>
+      
+      <div class="tabs-content">
+        <!-- TAB 1: CLIENTES -->
+        <div id="tab-clientes" class="tab-pane active">
+          <div id="clientes-list" class="clientes-table">
+            <!-- Se generará con JavaScript -->
+          </div>
+        </div>
+        
+        <!-- TAB 2: NOTAS -->
+        <div id="tab-notas" class="tab-pane">
+          <div id="notas-list" class="notas-table">
+            <!-- Se generará con JavaScript -->
+          </div>
+        </div>
+        
+        <!-- TAB 3: PAGOS -->
+        <div id="tab-pagos" class="tab-pane">
+          <div id="pagos-list" class="pagos-table">
+            <!-- Se generará con JavaScript -->
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -348,6 +348,98 @@ async function getReservaById(reservaId) {
   }
 }
 
+async function saveNotaAdicional(reservaId, nota, completada = false) {
+  try {
+    const { data, error } = await supabase
+      .from('reservas')
+      .update({
+        notas: nota,
+        nota_completada: completada
+      })
+      .eq('id', reservaId)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Error saving nota adicional:', error);
+    showToast('Error al guardar la nota', 'error');
+    return null;
+  }
+}
+
+async function updateNotaCompletion(reservaId, completada) {
+  try {
+    const { data, error } = await supabase
+      .from('reservas')
+      .update({
+        nota_completada: completada
+      })
+      .eq('id', reservaId)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Error updating nota completion:', error);
+    return null;
+  }
+}
+
+async function updatePaymentStatus(reservaId, estadoPago, montoPagado) {
+  try {
+    const { data, error } = await supabase
+      .from('reservas')
+      .update({
+        estado_pago: estadoPago,
+        monto_pagado: parseFloat(montoPagado)
+      })
+      .eq('id', reservaId)
+      .select();
+
+    if (error) throw error;
+    showToast('Pago actualizado exitosamente', 'success');
+    return data[0];
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    showToast('Error al actualizar el pago', 'error');
+    return null;
+  }
+}
+
+async function getAllReservas() {
+  try {
+    const { data, error } = await supabase
+      .from('reservas')
+      .select('*')
+      .order('fecha_inicio', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching all reservas:', error);
+    return [];
+  }
+}
+
+function exportClientsToExcel(clientes) {
+  const workbook = XLSX.utils.book_new();
+  
+  const dataToExport = clientes.map(cliente => ({
+    'Nombre': cliente.nombre,
+    'Teléfono': cliente.telefono
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+  worksheet['!cols'] = [
+    { wch: 30 },
+    { wch: 20 }
+  ];
+  
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
+  XLSX.writeFile(workbook, `clientes_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
 function showToast(message, type = 'info') {
   const toast = document.getElementById('toast');
   toast.textContent = message;

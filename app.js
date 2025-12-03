@@ -317,6 +317,34 @@ async function handleEditCabanaSubmit(e) {
   }
 }
 
+function setupTabSwitching() {
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const tabId = button.getAttribute('data-tab');
+      switchTab(tabId);
+    });
+  });
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-pane').forEach(pane => {
+    pane.classList.remove('active');
+  });
+  
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.classList.remove('active');
+  });
+  
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  
+  if (tabId === 'tab-notas') {
+    renderNotasTab();
+  } else if (tabId === 'tab-pagos') {
+    renderPagosTab();
+  }
+}
+
 async function openClientesView() {
   document.getElementById('main-view').classList.add('hidden');
   document.getElementById('clientes-view').classList.remove('hidden');
@@ -326,6 +354,175 @@ async function openClientesView() {
 function goBackFromClientes() {
   document.getElementById('clientes-view').classList.add('hidden');
   document.getElementById('main-view').classList.remove('hidden');
+}
+
+async function handleExportClientes() {
+  try {
+    const clientes = await getAllClientes();
+    if (clientes.length === 0) {
+      showToast('No hay clientes para exportar', 'warning');
+      return;
+    }
+    exportClientsToExcel(clientes);
+    showToast('Clientes exportados exitosamente', 'success');
+  } catch (error) {
+    console.error('Error exporting clients:', error);
+    showToast('Error al exportar clientes', 'error');
+  }
+}
+
+async function renderNotasTab() {
+  try {
+    const reservas = await getAllReservas();
+    const clientesConReservas = await getClientesWithReservas();
+    
+    const notasList = document.getElementById('notas-list');
+    
+    if (!reservas || reservas.length === 0) {
+      notasList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay reservas con notas</p>';
+      return;
+    }
+
+    let html = '';
+    
+    reservas.forEach(reserva => {
+      if (reserva.notas && reserva.notas.trim()) {
+        const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
+        const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
+        const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+        const isCompleted = reserva.nota_completada ? 'checked' : '';
+        
+        html += '<div class="nota-section">';
+        html += '<div class="nota-header">';
+        html += `<h3>${reserva.cliente_nombre}</h3>`;
+        html += `<p class="nota-periodo"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
+        html += '</div>';
+        
+        html += '<div class="nota-item">';
+        html += `<span class="nota-cabin">${cabin}</span>`;
+        html += '<div class="nota-content">';
+        html += '<div class="nota-text">';
+        html += `<p>${reserva.notas}</p>`;
+        html += '</div>';
+        html += '<div class="nota-checkbox">';
+        html += `<input type="checkbox" id="nota-check-${reserva.id}" data-reserva-id="${reserva.id}" ${isCompleted}>`;
+        html += `<label for="nota-check-${reserva.id}">Completada</label>`;
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+      }
+    });
+    
+    if (html === '') {
+      notasList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay reservas con notas registradas</p>';
+      return;
+    }
+
+    notasList.innerHTML = html;
+    
+    document.querySelectorAll('input[type="checkbox"][data-reserva-id]').forEach(checkbox => {
+      checkbox.addEventListener('change', async (e) => {
+        const reservaId = e.target.getAttribute('data-reserva-id');
+        await updateNotaCompletion(reservaId, e.target.checked);
+      });
+    });
+  } catch (error) {
+    console.error('Error rendering notas tab:', error);
+  }
+}
+
+async function renderPagosTab() {
+  try {
+    const reservas = await getAllReservas();
+    
+    const pagosList = document.getElementById('pagos-list');
+    
+    if (!reservas || reservas.length === 0) {
+      pagosList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay reservas</p>';
+      return;
+    }
+
+    let html = '';
+    let hasPaymentIssues = false;
+    
+    reservas.forEach(reserva => {
+      if (reserva.estado_pago !== 'pagado') {
+        hasPaymentIssues = true;
+        
+        const deuda = (reserva.monto_total || 0) - (reserva.monto_pagado || 0);
+        const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
+        const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
+        const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+        
+        html += '<div class="pago-section">';
+        html += '<div class="pago-header">';
+        html += `<h3>${reserva.cliente_nombre}</h3>`;
+        html += `<p class="pago-info"><i class="fas fa-phone"></i> ${reserva.cliente_telefono}</p>`;
+        html += `<p class="pago-info"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
+        html += '</div>';
+        
+        html += '<div class="pago-item">';
+        html += `<span class="nota-cabin">${cabin}</span>`;
+        
+        html += '<div class="pago-detalles">';
+        html += '<div class="pago-stat">';
+        html += '<div class="pago-stat-label">Monto Total</div>';
+        html += `<div class="pago-stat-value">$${(reserva.monto_total || 0).toFixed(2)}</div>`;
+        html += '</div>';
+        
+        html += `<div class="pago-stat ${reserva.estado_pago === 'pagado' ? 'pagado' : (reserva.estado_pago === 'parcial' ? 'parcial' : 'pendiente')}">`;
+        html += '<div class="pago-stat-label">Pagado</div>';
+        html += `<div class="pago-stat-value">$${(reserva.monto_pagado || 0).toFixed(2)}</div>`;
+        html += '</div>';
+        
+        html += '<div class="pago-stat">';
+        html += '<div class="pago-stat-label">Deuda</div>';
+        html += `<div class="pago-stat-value">$${deuda.toFixed(2)}</div>`;
+        html += '</div>';
+        
+        html += '<div class="pago-stat">';
+        html += '<div class="pago-stat-label">Estado</div>';
+        html += `<div class="pago-stat-value">${reserva.estado_pago.charAt(0).toUpperCase() + reserva.estado_pago.slice(1)}</div>`;
+        html += '</div>';
+        html += '</div>';
+        
+        html += '<div class="pago-botones">';
+        if (reserva.estado_pago === 'parcial') {
+          html += `<button class="pago-btn pago-btn-parcial-a-pagado" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">
+            <i class="fas fa-check"></i> Marcar como Pagado
+          </button>`;
+        }
+        if (reserva.estado_pago === 'pendiente') {
+          html += `<button class="pago-btn pago-btn-pendiente-a-pagado" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">
+            <i class="fas fa-check"></i> Marcar como Pagado
+          </button>`;
+        }
+        html += '</div>';
+        
+        html += '</div>';
+        html += '</div>';
+      }
+    });
+    
+    if (!hasPaymentIssues) {
+      pagosList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Todos los pagos están completados</p>';
+      return;
+    }
+
+    pagosList.innerHTML = html;
+    
+    document.querySelectorAll('.pago-btn-parcial-a-pagado, .pago-btn-pendiente-a-pagado').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const reservaId = e.currentTarget.getAttribute('data-reserva-id');
+        const monto = e.currentTarget.getAttribute('data-monto');
+        await updatePaymentStatus(reservaId, 'pagado', monto);
+        await renderPagosTab();
+      });
+    });
+  } catch (error) {
+    console.error('Error rendering pagos tab:', error);
+  }
 }
 
 async function renderClientesList() {
@@ -392,7 +589,10 @@ function setupEventListeners() {
   document.getElementById('btn-next-mes-calendar').addEventListener('click', nextMonthCalendar);
   document.getElementById('btn-ver-clientes').addEventListener('click', openClientesView);
   document.getElementById('btn-volver-clientes').addEventListener('click', goBackFromClientes);
+  document.getElementById('btn-export-clientes').addEventListener('click', handleExportClientes);
   document.getElementById('btn-add-reserva').addEventListener('click', openAddReservaModal);
+  
+  setupTabSwitching();
 
   document.getElementById('btn-close-modal').addEventListener('click', closeAddReservaModal);
   document.getElementById('btn-cancel-modal').addEventListener('click', closeAddReservaModal);
