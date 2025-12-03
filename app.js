@@ -432,6 +432,8 @@ async function renderNotasTab() {
   }
 }
 
+let mostrarPagosCompletados = false;
+
 async function renderPagosTab() {
   try {
     const reservas = await getAllReservas();
@@ -454,36 +456,47 @@ async function renderPagosTab() {
       }
     });
 
-    let html = '<div class="pagos-layout-container">';
-    
-    html += '<div class="pagos-columna pagos-completados">';
-    html += '<h3 class="pagos-columna-titulo"><i class="fas fa-check-circle"></i> Pagos Completados</h3>';
-    
-    if (pagosCompletados.length === 0) {
-      html += '<p style="text-align: center; color: #999; padding: 20px;">No hay pagos completados</p>';
-    } else {
-      pagosCompletados.forEach(reserva => {
-        const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
-        const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
-        const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
-        
-        html += '<div class="pago-card pago-card-completado">';
-        html += '<div class="pago-card-header">';
-        html += `<h4>${reserva.cliente_nombre}</h4>`;
-        html += `<span class="pago-estado-badge pagado"><i class="fas fa-check"></i> Pagado</span>`;
-        html += '</div>';
-        html += `<p class="pago-card-info"><i class="fas fa-phone"></i> ${reserva.cliente_telefono}</p>`;
-        html += `<p class="pago-card-info"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
-        html += `<p class="pago-card-info"><i class="fas fa-home"></i> ${cabin}</p>`;
-        html += '<div class="pago-card-monto">';
-        html += `<span class="pago-label">Total Pagado:</span>`;
-        html += `<span class="pago-valor">$${(reserva.monto_total || 0).toFixed(2)}</span>`;
-        html += '</div>';
-        html += '</div>';
-      });
-    }
-    
+    let html = '<div class="pagos-buscador-container">';
+    html += '<div class="pagos-search-wrapper">';
+    html += '<input type="text" id="pagos-search-input" class="pagos-search-input" placeholder="Buscar cliente..."><i class="fas fa-search"></i>';
     html += '</div>';
+    html += '<button id="btn-toggle-pagos-completados" class="btn btn-outline pagos-toggle-btn">';
+    html += `<i class="fas fa-${mostrarPagosCompletados ? 'eye-slash' : 'eye'}"></i> ${mostrarPagosCompletados ? 'Ocultar' : 'Ver'} Pagos Realizados (${pagosCompletados.length})`;
+    html += '</button>';
+    html += '</div>';
+    
+    html += '<div class="pagos-layout-container">';
+    
+    if (mostrarPagosCompletados) {
+      html += '<div class="pagos-columna pagos-completados">';
+      html += '<h3 class="pagos-columna-titulo"><i class="fas fa-check-circle"></i> Pagos Completados</h3>';
+      
+      if (pagosCompletados.length === 0) {
+        html += '<p style="text-align: center; color: #999; padding: 20px;">No hay pagos completados</p>';
+      } else {
+        pagosCompletados.forEach(reserva => {
+          const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
+          const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
+          const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+          
+          html += '<div class="pago-card pago-card-completado">';
+          html += '<div class="pago-card-header">';
+          html += `<h4>${reserva.cliente_nombre}</h4>`;
+          html += `<span class="pago-estado-badge pagado"><i class="fas fa-check"></i> Pagado</span>`;
+          html += '</div>';
+          html += `<p class="pago-card-info"><i class="fas fa-phone"></i> ${reserva.cliente_telefono}</p>`;
+          html += `<p class="pago-card-info"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
+          html += `<p class="pago-card-info"><i class="fas fa-home"></i> ${cabin}</p>`;
+          html += '<div class="pago-card-monto">';
+          html += `<span class="pago-label">Total Pagado:</span>`;
+          html += `<span class="pago-valor">$${(reserva.monto_total || 0).toFixed(2)}</span>`;
+          html += '</div>';
+          html += '</div>';
+        });
+      }
+      
+      html += '</div>';
+    }
     
     html += '<div class="pagos-columna pagos-incompletos">';
     html += '<h3 class="pagos-columna-titulo"><i class="fas fa-exclamation-circle"></i> Pagos Pendientes</h3>';
@@ -498,7 +511,7 @@ async function renderPagosTab() {
         const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
         const estadoColor = reserva.estado_pago === 'parcial' ? 'parcial' : 'pendiente';
         
-        html += `<div class="pago-card pago-card-${estadoColor}">`;
+        html += `<div class="pago-card pago-card-${estadoColor}" data-cliente="${reserva.cliente_nombre.toLowerCase()}">`;
         html += '<div class="pago-card-header">';
         html += `<h4>${reserva.cliente_nombre}</h4>`;
         html += `<span class="pago-estado-badge ${estadoColor}"><i class="fas fa-${estadoColor === 'parcial' ? 'circle-half' : 'times-circle'}"></i> ${estadoColor.charAt(0).toUpperCase() + estadoColor.slice(1)}</span>`;
@@ -520,9 +533,14 @@ async function renderPagosTab() {
         html += `<span class="pago-valor">$${deuda.toFixed(2)}</span>`;
         html += '</div>';
         html += '</div>';
-        html += '<button class="pago-btn-completar" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">';
-        html += '<i class="fas fa-check"></i> Marcar como Pagado';
+        html += '<div class="pago-card-botones">';
+        html += `<button class="pago-btn-parcial" data-reserva-id="${reserva.id}" data-cliente="${reserva.cliente_nombre}" data-monto-total="${reserva.monto_total}" data-monto-pagado="${reserva.monto_pagado || 0}">`;
+        html += '<i class="fas fa-plus"></i> Pago Parcial';
         html += '</button>';
+        html += `<button class="pago-btn-completar" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">`;
+        html += '<i class="fas fa-check"></i> Pagado Completo';
+        html += '</button>';
+        html += '</div>';
         html += '</div>';
       });
     }
@@ -531,6 +549,34 @@ async function renderPagosTab() {
     html += '</div>';
 
     pagosList.innerHTML = html;
+    
+    document.getElementById('btn-toggle-pagos-completados').addEventListener('click', async () => {
+      mostrarPagosCompletados = !mostrarPagosCompletados;
+      await renderPagosTab();
+    });
+    
+    document.getElementById('pagos-search-input').addEventListener('keyup', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      document.querySelectorAll('.pago-card-pendiente, .pago-card-parcial').forEach(card => {
+        const cliente = card.getAttribute('data-cliente');
+        if (cliente.includes(searchTerm)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+    
+    document.querySelectorAll('.pago-btn-parcial').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const reservaId = e.currentTarget.getAttribute('data-reserva-id');
+        const cliente = e.currentTarget.getAttribute('data-cliente');
+        const montoTotal = parseFloat(e.currentTarget.getAttribute('data-monto-total'));
+        const montoPagado = parseFloat(e.currentTarget.getAttribute('data-monto-pagado'));
+        
+        openPagoParcialModal(reservaId, cliente, montoTotal, montoPagado);
+      });
+    });
     
     document.querySelectorAll('.pago-btn-completar').forEach(button => {
       button.addEventListener('click', async (e) => {
@@ -543,6 +589,46 @@ async function renderPagosTab() {
   } catch (error) {
     console.error('Error rendering pagos tab:', error);
   }
+}
+
+function openPagoParcialModal(reservaId, cliente, montoTotal, montoPagado) {
+  document.getElementById('pago-cliente-nombre').value = cliente;
+  document.getElementById('pago-monto-total').value = montoTotal.toFixed(2);
+  document.getElementById('pago-monto-pagado').value = montoPagado.toFixed(2);
+  document.getElementById('pago-deuda-actual').value = (montoTotal - montoPagado).toFixed(2);
+  document.getElementById('pago-monto-nuevo').value = '';
+  document.getElementById('pago-monto-nuevo').focus();
+  
+  document.getElementById('form-pago-parcial').onsubmit = async (e) => {
+    e.preventDefault();
+    
+    const montoNuevo = parseFloat(document.getElementById('pago-monto-nuevo').value);
+    const deudaActual = montoTotal - montoPagado;
+    
+    if (isNaN(montoNuevo) || montoNuevo <= 0) {
+      showToast('Ingresa un monto válido', 'warning');
+      return;
+    }
+    
+    if (montoNuevo > deudaActual) {
+      showToast(`El monto no puede ser mayor a la deuda ($${deudaActual.toFixed(2)})`, 'warning');
+      return;
+    }
+    
+    const nuevoMontoPagado = montoPagado + montoNuevo;
+    const nuevoEstado = nuevoMontoPagado >= montoTotal ? 'pagado' : 'parcial';
+    
+    await updatePaymentStatus(reservaId, nuevoEstado, nuevoMontoPagado);
+    closePagoParcialModal();
+    await renderPagosTab();
+  };
+  
+  document.getElementById('modal-pago-parcial').classList.remove('hidden');
+}
+
+function closePagoParcialModal() {
+  document.getElementById('modal-pago-parcial').classList.add('hidden');
+  document.getElementById('form-pago-parcial').reset();
 }
 
 async function renderClientesList() {
@@ -611,6 +697,8 @@ function setupEventListeners() {
   document.getElementById('btn-volver-clientes').addEventListener('click', goBackFromClientes);
   document.getElementById('btn-export-clientes').addEventListener('click', handleExportClientes);
   document.getElementById('btn-add-reserva').addEventListener('click', openAddReservaModal);
+  document.getElementById('btn-close-pago-modal').addEventListener('click', closePagoParcialModal);
+  document.getElementById('btn-cancel-pago-modal').addEventListener('click', closePagoParcialModal);
   
   setupTabSwitching();
 
