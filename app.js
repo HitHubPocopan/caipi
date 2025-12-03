@@ -443,76 +443,96 @@ async function renderPagosTab() {
       return;
     }
 
-    let html = '';
-    let hasPaymentIssues = false;
+    let pagosCompletados = [];
+    let pagosIncompletos = [];
     
     reservas.forEach(reserva => {
-      if (reserva.estado_pago !== 'pagado') {
-        hasPaymentIssues = true;
-        
-        const deuda = (reserva.monto_total || 0) - (reserva.monto_pagado || 0);
+      if (reserva.estado_pago === 'pagado') {
+        pagosCompletados.push(reserva);
+      } else if (reserva.estado_pago === 'parcial' || reserva.estado_pago === 'pendiente') {
+        pagosIncompletos.push(reserva);
+      }
+    });
+
+    let html = '<div class="pagos-layout-container">';
+    
+    html += '<div class="pagos-columna pagos-completados">';
+    html += '<h3 class="pagos-columna-titulo"><i class="fas fa-check-circle"></i> Pagos Completados</h3>';
+    
+    if (pagosCompletados.length === 0) {
+      html += '<p style="text-align: center; color: #999; padding: 20px;">No hay pagos completados</p>';
+    } else {
+      pagosCompletados.forEach(reserva => {
         const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
         const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
         const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
         
-        html += '<div class="pago-section">';
-        html += '<div class="pago-header">';
-        html += `<h3>${reserva.cliente_nombre}</h3>`;
-        html += `<p class="pago-info"><i class="fas fa-phone"></i> ${reserva.cliente_telefono}</p>`;
-        html += `<p class="pago-info"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
+        html += '<div class="pago-card pago-card-completado">';
+        html += '<div class="pago-card-header">';
+        html += `<h4>${reserva.cliente_nombre}</h4>`;
+        html += `<span class="pago-estado-badge pagado"><i class="fas fa-check"></i> Pagado</span>`;
         html += '</div>';
-        
-        html += '<div class="pago-item">';
-        html += `<span class="nota-cabin">${cabin}</span>`;
-        
-        html += '<div class="pago-detalles">';
-        html += '<div class="pago-stat">';
-        html += '<div class="pago-stat-label">Monto Total</div>';
-        html += `<div class="pago-stat-value">$${(reserva.monto_total || 0).toFixed(2)}</div>`;
-        html += '</div>';
-        
-        html += `<div class="pago-stat ${reserva.estado_pago === 'pagado' ? 'pagado' : (reserva.estado_pago === 'parcial' ? 'parcial' : 'pendiente')}">`;
-        html += '<div class="pago-stat-label">Pagado</div>';
-        html += `<div class="pago-stat-value">$${(reserva.monto_pagado || 0).toFixed(2)}</div>`;
-        html += '</div>';
-        
-        html += '<div class="pago-stat">';
-        html += '<div class="pago-stat-label">Deuda</div>';
-        html += `<div class="pago-stat-value">$${deuda.toFixed(2)}</div>`;
-        html += '</div>';
-        
-        html += '<div class="pago-stat">';
-        html += '<div class="pago-stat-label">Estado</div>';
-        html += `<div class="pago-stat-value">${reserva.estado_pago.charAt(0).toUpperCase() + reserva.estado_pago.slice(1)}</div>`;
+        html += `<p class="pago-card-info"><i class="fas fa-phone"></i> ${reserva.cliente_telefono}</p>`;
+        html += `<p class="pago-card-info"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
+        html += `<p class="pago-card-info"><i class="fas fa-home"></i> ${cabin}</p>`;
+        html += '<div class="pago-card-monto">';
+        html += `<span class="pago-label">Total Pagado:</span>`;
+        html += `<span class="pago-valor">$${(reserva.monto_total || 0).toFixed(2)}</span>`;
         html += '</div>';
         html += '</div>';
-        
-        html += '<div class="pago-botones">';
-        if (reserva.estado_pago === 'parcial') {
-          html += `<button class="pago-btn pago-btn-parcial-a-pagado" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">
-            <i class="fas fa-check"></i> Marcar como Pagado
-          </button>`;
-        }
-        if (reserva.estado_pago === 'pendiente') {
-          html += `<button class="pago-btn pago-btn-pendiente-a-pagado" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">
-            <i class="fas fa-check"></i> Marcar como Pagado
-          </button>`;
-        }
-        html += '</div>';
-        
-        html += '</div>';
-        html += '</div>';
-      }
-    });
-    
-    if (!hasPaymentIssues) {
-      pagosList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Todos los pagos están completados</p>';
-      return;
+      });
     }
+    
+    html += '</div>';
+    
+    html += '<div class="pagos-columna pagos-incompletos">';
+    html += '<h3 class="pagos-columna-titulo"><i class="fas fa-exclamation-circle"></i> Pagos Pendientes</h3>';
+    
+    if (pagosIncompletos.length === 0) {
+      html += '<p style="text-align: center; color: #999; padding: 20px;">Todos los pagos están al día</p>';
+    } else {
+      pagosIncompletos.forEach(reserva => {
+        const deuda = (reserva.monto_total || 0) - (reserva.monto_pagado || 0);
+        const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
+        const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
+        const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+        const estadoColor = reserva.estado_pago === 'parcial' ? 'parcial' : 'pendiente';
+        
+        html += `<div class="pago-card pago-card-${estadoColor}">`;
+        html += '<div class="pago-card-header">';
+        html += `<h4>${reserva.cliente_nombre}</h4>`;
+        html += `<span class="pago-estado-badge ${estadoColor}"><i class="fas fa-${estadoColor === 'parcial' ? 'circle-half' : 'times-circle'}"></i> ${estadoColor.charAt(0).toUpperCase() + estadoColor.slice(1)}</span>`;
+        html += '</div>';
+        html += `<p class="pago-card-info"><i class="fas fa-phone"></i> ${reserva.cliente_telefono}</p>`;
+        html += `<p class="pago-card-info"><i class="fas fa-calendar"></i> ${entrada} - ${salida}</p>`;
+        html += `<p class="pago-card-info"><i class="fas fa-home"></i> ${cabin}</p>`;
+        html += '<div class="pago-card-montos">';
+        html += '<div class="pago-monto-item">';
+        html += '<span class="pago-label">Total:</span>';
+        html += `<span class="pago-valor">$${(reserva.monto_total || 0).toFixed(2)}</span>`;
+        html += '</div>';
+        html += '<div class="pago-monto-item">';
+        html += '<span class="pago-label">Pagado:</span>';
+        html += `<span class="pago-valor">$${(reserva.monto_pagado || 0).toFixed(2)}</span>`;
+        html += '</div>';
+        html += '<div class="pago-monto-item deuda">';
+        html += '<span class="pago-label">Deuda:</span>';
+        html += `<span class="pago-valor">$${deuda.toFixed(2)}</span>`;
+        html += '</div>';
+        html += '</div>';
+        html += '<button class="pago-btn-completar" data-reserva-id="${reserva.id}" data-monto="${reserva.monto_total}">';
+        html += '<i class="fas fa-check"></i> Marcar como Pagado';
+        html += '</button>';
+        html += '</div>';
+      });
+    }
+    
+    html += '</div>';
+    html += '</div>';
 
     pagosList.innerHTML = html;
     
-    document.querySelectorAll('.pago-btn-parcial-a-pagado, .pago-btn-pendiente-a-pagado').forEach(button => {
+    document.querySelectorAll('.pago-btn-completar').forEach(button => {
       button.addEventListener('click', async (e) => {
         const reservaId = e.currentTarget.getAttribute('data-reserva-id');
         const monto = e.currentTarget.getAttribute('data-monto');

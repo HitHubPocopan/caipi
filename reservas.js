@@ -36,6 +36,14 @@ async function loadReservaData(reservaId) {
   document.getElementById('edit-monto-pagado').value = reserva.monto_pagado || 0;
   document.getElementById('edit-notas').value = reserva.notas || '';
 
+  selectedDays = {};
+  diasReserva.forEach(dia => {
+    selectedDays[dia.fecha] = {
+      am: dia.ocupacion_am,
+      pm: dia.ocupacion_pm
+    };
+  });
+
   populateEditOcupacionDias(diasReserva);
 
   document.getElementById('modal-edit-reserva').classList.remove('hidden');
