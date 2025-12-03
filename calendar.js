@@ -2,6 +2,7 @@ let currentDate = new Date();
 let displayDate = new Date();
 let selectedDays = {};
 let currentCabana = null;
+let reservaColorMap = {};
 
 function generateCalendar(year, month, reservas, diasReserva) {
   const calendarGrid = document.getElementById('calendar-grid');
@@ -235,14 +236,18 @@ function updateOcupacionDiasUI() {
 
 function getReservaColorClass(reservaId) {
   if (!reservaId) return 'reserva-color-1';
+  
   const colors = ['reserva-color-1', 'reserva-color-2', 'reserva-color-3', 'reserva-color-4', 'reserva-color-5', 'reserva-color-6'];
-  let hash = 0;
-  for (let i = 0; i < reservaId.length; i++) {
-    hash = ((hash << 5) - hash) + reservaId.charCodeAt(i);
-    hash = hash & hash;
+  
+  if (reservaColorMap[reservaId]) {
+    return reservaColorMap[reservaId];
   }
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
+  
+  const colorIndex = Object.keys(reservaColorMap).length % colors.length;
+  const assignedColor = colors[colorIndex];
+  reservaColorMap[reservaId] = assignedColor;
+  
+  return assignedColor;
 }
 
 function abbreviateName(name) {

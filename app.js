@@ -1,4 +1,6 @@
 let cabanas = [];
+const CORRECT_PASSWORD = '7154';
+
 let allReservas = [];
 let allDiasReserva = [];
 let currentMonth = new Date().getMonth() + 1;
@@ -9,6 +11,47 @@ const paletaColores = [
   '#FFD1D1', '#B3E5FC', '#B3E5B3', '#FFD4B3', '#E1B3FF', '#FFB3E1',
   '#FFA8A8', '#81D4FA', '#81D481', '#FFB380', '#CD81FF', '#FF81CD'
 ];
+
+function initializeApp() {
+  checkAuthentication();
+  setupLoginForm();
+}
+
+function checkAuthentication() {
+  const isAuthenticated = sessionStorage.getItem('authenticated') === 'true';
+  const loginView = document.getElementById('login-view');
+  const mainView = document.getElementById('main-view');
+  
+  if (isAuthenticated) {
+    loginView.style.display = 'none';
+    mainView.classList.remove('hidden');
+    init();
+  } else {
+    loginView.style.display = 'flex';
+    mainView.classList.add('hidden');
+  }
+}
+
+function setupLoginForm() {
+  const loginForm = document.getElementById('login-form');
+  const passwordInput = document.getElementById('password-input');
+  const loginError = document.getElementById('login-error');
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const password = passwordInput.value;
+
+    if (password === CORRECT_PASSWORD) {
+      sessionStorage.setItem('authenticated', 'true');
+      loginError.style.display = 'none';
+      checkAuthentication();
+    } else {
+      loginError.style.display = 'block';
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  });
+}
 
 async function init() {
   await initSupabase();
@@ -140,6 +183,7 @@ async function openCalendarView(cabana) {
   currentCabana = cabana;
   selectedDays = {};
   lastSelectedDate = null;
+  reservaColorMap = {};
   
   displayDate = new Date();
 
@@ -471,7 +515,7 @@ async function loadSupabaseScript() {
 window.addEventListener('load', async () => {
   try {
     await loadSupabaseScript();
-    await init();
+    initializeApp();
   } catch (error) {
     console.error('Error initializing app:', error);
     showToast('Error al inicializar la aplicación. Verifica la consola.', 'error');
