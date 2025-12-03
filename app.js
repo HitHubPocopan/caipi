@@ -394,26 +394,10 @@ function updateSelectedDaysFromDates() {
 
   selectedDays = {};
   const daysBetween = getDaysBetween(startDate, endDate);
-  
-  // Agregar +1 día para el checkout (sistema de noches alquiladas)
-  const checkoutDate = new Date(endDate);
-  checkoutDate.setDate(checkoutDate.getDate() + 1);
-  daysBetween.push(new Date(checkoutDate));
 
-  daysBetween.forEach((date, index) => {
+  daysBetween.forEach((date) => {
     const dateISO = formatDateISO(date);
-    // Último día (checkout) solo AM
-    if (index === daysBetween.length - 1) {
-      selectedDays[dateISO] = { am: true, pm: false };
-    } else {
-      // Primer día solo PM (check-in 11 AM)
-      if (index === 0) {
-        selectedDays[dateISO] = { am: false, pm: true };
-      } else {
-        // Días intermedios completos
-        selectedDays[dateISO] = { am: true, pm: true };
-      }
-    }
+    selectedDays[dateISO] = { am: true, pm: true };
   });
 
   updateOcupacionDiasUI();
@@ -436,26 +420,10 @@ function updateEditSelectedDaysFromDates() {
 
   selectedDays = {};
   const daysBetween = getDaysBetween(startDate, endDate);
-  
-  // Agregar +1 día para el checkout (sistema de noches alquiladas)
-  const checkoutDate = new Date(endDate);
-  checkoutDate.setDate(checkoutDate.getDate() + 1);
-  daysBetween.push(new Date(checkoutDate));
 
-  daysBetween.forEach((date, index) => {
+  daysBetween.forEach((date) => {
     const dateISO = formatDateISO(date);
-    // Último día (checkout) solo AM
-    if (index === daysBetween.length - 1) {
-      selectedDays[dateISO] = { am: true, pm: false };
-    } else {
-      // Primer día solo PM (check-in 11 AM)
-      if (index === 0) {
-        selectedDays[dateISO] = { am: false, pm: true };
-      } else {
-        // Días intermedios completos
-        selectedDays[dateISO] = { am: true, pm: true };
-      }
-    }
+    selectedDays[dateISO] = { am: true, pm: true };
   });
 
   const diasReserva = allDiasReserva.filter(d => d.reserva_id === currentEditingReservaId);
