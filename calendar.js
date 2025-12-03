@@ -123,7 +123,8 @@ function createEmptyDayElement() {
 function toggleDaySelection(dateStr) {
   if (selectedDays[dateStr]) {
     delete selectedDays[dateStr];
-    selectedDays[dateStr] = { am: false, pm: false };
+  } else {
+    selectedDays[dateStr] = { am: true, pm: true };
   }
 
   const dayElement = document.querySelector(`[data-fecha="${dateStr}"]`);
@@ -150,27 +151,11 @@ function selectRangeOfDays(dateStr) {
   const end = date1 <= date2 ? date2 : date1;
 
   const rangeDays = getDaysBetween(start, end);
-  
-  // Agregar +1 día para el checkout (sistema de noches alquiladas)
-  const checkoutDate = new Date(end);
-  checkoutDate.setDate(checkoutDate.getDate() + 1);
-  rangeDays.push(new Date(checkoutDate));
 
   selectedDays = {};
-  rangeDays.forEach((date, index) => {
+  rangeDays.forEach((date) => {
     const dateISO = formatDateISO(date);
-    // Último día (checkout) solo AM
-    if (index === rangeDays.length - 1) {
-      selectedDays[dateISO] = { am: true, pm: false };
-    } else {
-      // Primer día solo PM (check-in 11 AM)
-      if (index === 0) {
-        selectedDays[dateISO] = { am: false, pm: true };
-      } else {
-        // Días intermedios completos
-        selectedDays[dateISO] = { am: true, pm: true };
-      }
-    }
+    selectedDays[dateISO] = { am: true, pm: true };
   });
 
   document.querySelectorAll('.dia.selected').forEach(el => {
@@ -212,81 +197,17 @@ function updateOcupacionDiasUI() {
     return;
   }
 
-  const firstDate = sortedDates[0];
-  const lastDate = sortedDates[sortedDates.length - 1];
-  const hasMultipleDays = sortedDates.length > 1;
-
-  sortedDates.forEach((dateStr, index) => {
+  sortedDates.forEach((dateStr) => {
     const date = parseDateISO(dateStr);
     const dateDisplay = formatDateDisplay(date);
-    const isFirstDay = dateStr === firstDate;
-    const isLastDay = dateStr === lastDate;
-    const isSingleDay = sortedDates.length === 1;
 
     const diaDiv = document.createElement('div');
     diaDiv.className = 'dia-ocupacion';
 
-    if (isSingleDay || isFirstDay || isLastDay) {
-      let dayLabel = '';
-      let description = '';
-      if (isSingleDay) {
-        dayLabel = '(Noche única)';
-        description = 'Check-in: 11 AM | Check-out: 9 AM +1 día';
-      } else if (isFirstDay) {
-        dayLabel = '(Check-in: 11 AM)';
-        description = '';
-      } else if (isLastDay) {
-        dayLabel = '(Check-out: 9 AM)';
-        description = '';
-      }
-
-      diaDiv.innerHTML = `
-        <span class="dia-ocupacion-fecha">${dateDisplay} <small>${dayLabel}</small></span>
-        ${description ? `<small style="color: #999; font-size: 0.8rem;">${description}</small>` : ''}
-        <div class="dia-ocupacion-botones">
-          <button type="button" class="ocupacion-btn" data-fecha="${dateStr}" data-type="am">AM</button>
-          <button type="button" class="ocupacion-btn" data-fecha="${dateStr}" data-type="completo">Día Completo</button>
-          <button type="button" class="ocupacion-btn" data-fecha="${dateStr}" data-type="pm">PM</button>
-        </div>
-      `;
-
-      const amBtn = diaDiv.querySelector('[data-type="am"]');
-      const completoBtn = diaDiv.querySelector('[data-type="completo"]');
-      const pmBtn = diaDiv.querySelector('[data-type="pm"]');
-
-      const { am, pm } = selectedDays[dateStr];
-
-      if (am && pm) {
-        completoBtn.classList.add('active');
-      } else if (am && !pm) {
-        amBtn.classList.add('active');
-      } else if (!am && pm) {
-        pmBtn.classList.add('active');
-      }
-
-      amBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectedDays[dateStr] = { am: true, pm: false };
-        updateOcupacionDiasUI();
-      });
-
-      completoBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectedDays[dateStr] = { am: true, pm: true };
-        updateOcupacionDiasUI();
-      });
-
-      pmBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectedDays[dateStr] = { am: false, pm: true };
-        updateOcupacionDiasUI();
-      });
-    } else {
-      diaDiv.innerHTML = `
-        <span class="dia-ocupacion-fecha">${dateDisplay}</span>
-        <span style="color: #2196F3; font-weight: 600; font-size: 0.9rem;">Ocupado día completo</span>
-      `;
-    }
+    diaDiv.innerHTML = `
+      <span class="dia-ocupacion-fecha">${dateDisplay}</span>
+      <span style="color: #2196F3; font-weight: 600; font-size: 0.9rem;">Reservado</span>
+    `;
 
     ocupacionContainer.appendChild(diaDiv);
   });
