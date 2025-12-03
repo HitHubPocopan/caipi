@@ -140,14 +140,14 @@ async function openCalendarView(cabana) {
   currentCabana = cabana;
   selectedDays = {};
   lastSelectedDate = null;
-  calendarMonthOffset = 0;
+  
+  displayDate = new Date();
 
   document.getElementById('main-view').classList.add('hidden');
   document.getElementById('calendar-view').classList.remove('hidden');
 
   document.getElementById('cabana-nombre').textContent = `Cabaña #${cabana.numero}`;
 
-  currentDate = new Date();
   updateCalendarTitle();
 
   await loadCalendar();
@@ -156,22 +156,8 @@ async function openCalendarView(cabana) {
 async function loadCalendar() {
   if (!currentCabana) return;
 
-  let year = currentDate.getFullYear();
-  let month = currentDate.getMonth() + 1;
-
-  month += calendarMonthOffset;
-  
-  while (month > 12) {
-    year++;
-    month -= 12;
-  }
-  
-  while (month < 1) {
-    year--;
-    month += 12;
-  }
-
-  currentDate = new Date(year, month - 1, 1);
+  const year = displayDate.getFullYear();
+  const month = displayDate.getMonth() + 1;
 
   allReservas = await getReservasByMonth(currentCabana.id, year, month);
 

@@ -1,5 +1,5 @@
 let currentDate = new Date();
-let calendarMonthOffset = 0;
+let displayDate = new Date();
 let selectedDays = {};
 let currentCabana = null;
 
@@ -330,19 +330,17 @@ function getMonthYear(year, month) {
 }
 
 function previousMonthCalendar() {
-  calendarMonthOffset--;
+  displayDate.setMonth(displayDate.getMonth() - 1);
   loadCalendar();
-  updateCalendarTitle();
 }
 
 function nextMonthCalendar() {
-  calendarMonthOffset++;
+  displayDate.setMonth(displayDate.getMonth() + 1);
   loadCalendar();
-  updateCalendarTitle();
 }
 
 function updateCalendarTitle() {
-  const mesAnio = getMonthYear(currentDate.getFullYear(), currentDate.getMonth() + 1);
+  const mesAnio = getMonthYear(displayDate.getFullYear(), displayDate.getMonth() + 1);
   const currentMesElement = document.getElementById('current-mes-anio');
   const mesElement = document.getElementById('mes-anio');
   
