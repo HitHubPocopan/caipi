@@ -18,6 +18,12 @@
   --color-text-light: #666666;
   --color-border: #e0e0e0;
   --color-bg: #fafafa;
+  --reserva-color-1: #c5cae9;
+  --reserva-color-2: #f8bbd0;
+  --reserva-color-3: #b2dfdb;
+  --reserva-color-4: #ffe0b2;
+  --reserva-color-5: #d1c4e9;
+  --reserva-color-6: #ffccbc;
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
@@ -712,6 +718,30 @@ body {
 /* Ocupación PM: gradiente verde arriba, azul abajo */
 .dia.ocupado-pm {
   background: linear-gradient(to bottom, var(--color-disponible) 50%, var(--color-ocupado) 50%);
+}
+
+.dia.reserva-color-1 {
+  background-color: var(--reserva-color-1);
+}
+
+.dia.reserva-color-2 {
+  background-color: var(--reserva-color-2);
+}
+
+.dia.reserva-color-3 {
+  background-color: var(--reserva-color-3);
+}
+
+.dia.reserva-color-4 {
+  background-color: var(--reserva-color-4);
+}
+
+.dia.reserva-color-5 {
+  background-color: var(--reserva-color-5);
+}
+
+.dia.reserva-color-6 {
+  background-color: var(--reserva-color-6);
 }
 
 .dia.mantenimiento {

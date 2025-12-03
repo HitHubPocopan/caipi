@@ -91,6 +91,9 @@ function createDayElement(day, dateStr, reservas, diasReserva, year, month) {
       dayElement.classList.add('ocupado-pm');
     }
 
+    const colorClass = getReservaColorClass(reservaId);
+    dayElement.classList.add(colorClass);
+
     dayClienteDiv.textContent = clientName;
     dayElement.dataset.reservaId = reservaId;
   }
@@ -211,6 +214,18 @@ function updateOcupacionDiasUI() {
 
     ocupacionContainer.appendChild(diaDiv);
   });
+}
+
+function getReservaColorClass(reservaId) {
+  if (!reservaId) return 'reserva-color-1';
+  const colors = ['reserva-color-1', 'reserva-color-2', 'reserva-color-3', 'reserva-color-4', 'reserva-color-5', 'reserva-color-6'];
+  let hash = 0;
+  for (let i = 0; i < reservaId.length; i++) {
+    hash = ((hash << 5) - hash) + reservaId.charCodeAt(i);
+    hash = hash & hash;
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
 }
 
 function abbreviateName(name) {

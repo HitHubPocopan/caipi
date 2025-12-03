@@ -142,8 +142,8 @@ async function getReservasByMonth(cabanaId, year, month) {
       .from('reservas')
       .select('id, cliente_nombre, cliente_telefono, cantidad_personas, fecha_inicio, fecha_fin, estado_pago, monto_total, monto_pagado, notas, created_at')
       .eq('cabana_id', cabanaId)
-      .gte('fecha_inicio', startDate)
-      .lte('fecha_fin', endDate);
+      .lte('fecha_inicio', endDate)
+      .gte('fecha_fin', startDate);
 
     if (error) throw error;
     return data || [];
