@@ -65,6 +65,7 @@ function createDayElement(day, dateStr, reservas, diasReserva, year, month) {
   let amOccupied = false;
   let pmOccupied = false;
   let reservaId = null;
+  let estadoPago = null;
 
   for (let dia of diasReserva) {
     if (dia.fecha === dateStr) {
@@ -75,6 +76,7 @@ function createDayElement(day, dateStr, reservas, diasReserva, year, month) {
         if (reserva.id === dia.reserva_id) {
           clientName = abbreviateName(reserva.cliente_nombre);
           reservaId = dia.reserva_id;
+          estadoPago = reserva.estado_pago;
           hasOccupation = true;
           break;
         }
@@ -96,6 +98,21 @@ function createDayElement(day, dateStr, reservas, diasReserva, year, month) {
 
     dayClienteDiv.textContent = clientName;
     dayElement.dataset.reservaId = reservaId;
+
+    if (estadoPago) {
+      const pagoCirculo = document.createElement('div');
+      pagoCirculo.className = 'pago-status-circle';
+      
+      if (estadoPago.toLowerCase() === 'pendiente') {
+        pagoCirculo.classList.add('pago-pendiente');
+      } else if (estadoPago.toLowerCase() === 'parcial') {
+        pagoCirculo.classList.add('pago-parcial');
+      } else if (estadoPago.toLowerCase() === 'pagado') {
+        pagoCirculo.classList.add('pago-pagado');
+      }
+      
+      dayElement.appendChild(pagoCirculo);
+    }
   }
 
   dayElement.appendChild(dayClienteDiv);

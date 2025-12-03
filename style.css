@@ -705,6 +705,28 @@ body {
   margin-top: var(--spacing-xs);
 }
 
+.pago-status-circle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.pago-status-circle.pago-pendiente {
+  background-color: #f44336;
+}
+
+.pago-status-circle.pago-parcial {
+  background-color: #ff9800;
+}
+
+.pago-status-circle.pago-pagado {
+  background-color: #4CAF50;
+}
+
 /* Ocupación completa */
 .dia.ocupado-completo {
   background-color: var(--color-ocupado);
