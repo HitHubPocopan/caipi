@@ -381,6 +381,61 @@
     </div>
   </div>
 
+  <!-- MODAL: Editar Cliente -->
+  <div id="modal-editar-cliente" class="modal hidden">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Editar Cliente</h3>
+        <button id="btn-close-editar-cliente-modal" class="btn-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="form-editar-cliente" class="form-reserva">
+        <div class="form-section">
+          <div class="form-group">
+            <label for="editar-cliente-nombre">Nombre *</label>
+            <input type="text" id="editar-cliente-nombre" required>
+          </div>
+          <div class="form-group">
+            <label for="editar-cliente-telefono">Teléfono *</label>
+            <input type="tel" id="editar-cliente-telefono" required>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="btn-cancel-editar-cliente-modal" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Eliminar Cliente (Confirmación con contraseña) -->
+  <div id="modal-eliminar-cliente" class="modal hidden">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Eliminar Cliente</h3>
+        <button id="btn-close-eliminar-cliente-modal" class="btn-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="form-section">
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">
+          <i class="fas fa-exclamation-triangle" style="color: #f44336; font-size: 2rem;"></i><br><br>
+          ¿Estás seguro de que deseas eliminar este cliente?<br>
+          Esta acción no se puede deshacer.
+        </p>
+        <div class="form-group">
+          <label for="eliminar-cliente-clave">Ingresa la clave 71 para confirmar</label>
+          <input type="password" id="eliminar-cliente-clave" placeholder="Clave" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" id="btn-cancel-eliminar-cliente-modal" class="btn btn-secondary">Cancelar</button>
+        <button type="button" id="btn-confirmar-eliminar-cliente" class="btn btn-danger">Eliminar Definitivamente</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast para notificaciones -->
   <div id="toast" class="toast hidden"></div>
 

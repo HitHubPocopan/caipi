@@ -647,10 +647,20 @@ async function renderClientesList() {
       const fechaRegistro = new Date(cliente.created_at).toLocaleDateString('es-AR');
       html += '<div class="cliente-section">';
       html += '<div class="cliente-header">';
+      html += '<div class="cliente-header-title">';
       html += `<h3>${cliente.nombre}</h3>`;
+      html += '</div>';
+      html += '<div class="cliente-header-buttons">';
+      html += `<button class="btn btn-sm btn-info btn-editar-cliente" data-cliente-id="${cliente.id}" data-cliente-nombre="${cliente.nombre}" data-cliente-telefono="${cliente.telefono}">`;
+      html += '<i class="fas fa-edit"></i> Editar';
+      html += '</button>';
+      html += `<button class="btn btn-sm btn-danger btn-eliminar-cliente" data-cliente-id="${cliente.id}" data-cliente-nombre="${cliente.nombre}">`;
+      html += '<i class="fas fa-trash"></i> Eliminar';
+      html += '</button>';
+      html += '</div>';
+      html += '</div>';
       html += `<p class="cliente-phone"><i class="fas fa-phone"></i> ${cliente.telefono}</p>`;
       html += `<p class="cliente-date"><i class="fas fa-calendar"></i> Registrado: ${fechaRegistro}</p>`;
-      html += '</div>';
       
       if (cliente.reservas && cliente.reservas.length > 0) {
         html += '<div class="cliente-reservas">';
@@ -681,11 +691,102 @@ async function renderClientesList() {
     });
 
     clientesList.innerHTML = html;
+
+    document.querySelectorAll('.btn-editar-cliente').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const clienteId = e.currentTarget.getAttribute('data-cliente-id');
+        const clienteNombre = e.currentTarget.getAttribute('data-cliente-nombre');
+        const clienteTelefono = e.currentTarget.getAttribute('data-cliente-telefono');
+        openEditarClienteModal(clienteId, clienteNombre, clienteTelefono);
+      });
+    });
+
+    document.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const clienteId = e.currentTarget.getAttribute('data-cliente-id');
+        const clienteNombre = e.currentTarget.getAttribute('data-cliente-nombre');
+        openEliminarClienteModal(clienteId, clienteNombre);
+      });
+    });
   } catch (error) {
     console.error('Error al cargar clientes:', error);
     alert('Error al cargar la lista de clientes');
   }
 }
+
+function openEditarClienteModal(clienteId, nombre, telefono) {
+  currentEditingClienteId = clienteId;
+  document.getElementById('editar-cliente-nombre').value = nombre;
+  document.getElementById('editar-cliente-telefono').value = telefono;
+  document.getElementById('modal-editar-cliente').classList.remove('hidden');
+  document.getElementById('editar-cliente-nombre').focus();
+}
+
+function closeEditarClienteModal() {
+  document.getElementById('modal-editar-cliente').classList.add('hidden');
+  document.getElementById('form-editar-cliente').reset();
+  currentEditingClienteId = null;
+}
+
+function openEliminarClienteModal(clienteId, nombre) {
+  currentEliminarClienteId = clienteId;
+  currentEliminarClienteNombre = nombre;
+  document.getElementById('eliminar-cliente-clave').value = '';
+  document.getElementById('modal-eliminar-cliente').classList.remove('hidden');
+  document.getElementById('eliminar-cliente-clave').focus();
+}
+
+function closeEliminarClienteModal() {
+  document.getElementById('modal-eliminar-cliente').classList.add('hidden');
+  document.getElementById('eliminar-cliente-clave').value = '';
+  currentEliminarClienteId = null;
+  currentEliminarClienteNombre = null;
+}
+
+async function handleEditarClienteSubmit(e) {
+  e.preventDefault();
+  
+  const nuevoNombre = document.getElementById('editar-cliente-nombre').value.trim();
+  const nuevoTelefono = document.getElementById('editar-cliente-telefono').value.trim();
+  
+  if (!nuevoNombre || !nuevoTelefono) {
+    showToast('Completa todos los campos', 'warning');
+    return;
+  }
+  
+  try {
+    await updateCliente(currentEditingClienteId, nuevoNombre, nuevoTelefono);
+    await renderClientesList();
+    closeEditarClienteModal();
+    showToast('Cliente actualizado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error al actualizar cliente:', error);
+    showToast('Error al actualizar el cliente', 'error');
+  }
+}
+
+async function handleConfirmarEliminarCliente() {
+  const clave = document.getElementById('eliminar-cliente-clave').value;
+  
+  if (clave !== '71') {
+    showToast('Clave incorrecta', 'error');
+    return;
+  }
+  
+  try {
+    await deleteCliente(currentEliminarClienteId);
+    await renderClientesList();
+    closeEliminarClienteModal();
+    showToast('Cliente eliminado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error al eliminar cliente:', error);
+    showToast('Error al eliminar el cliente', 'error');
+  }
+}
+
+let currentEditingClienteId = null;
+let currentEliminarClienteId = null;
+let currentEliminarClienteNombre = null;
 
 function setupEventListeners() {
   document.getElementById('btn-volver').addEventListener('click', goBackToMain);
@@ -699,6 +800,14 @@ function setupEventListeners() {
   document.getElementById('btn-add-reserva').addEventListener('click', openAddReservaModal);
   document.getElementById('btn-close-pago-modal').addEventListener('click', closePagoParcialModal);
   document.getElementById('btn-cancel-pago-modal').addEventListener('click', closePagoParcialModal);
+  
+  document.getElementById('btn-close-editar-cliente-modal').addEventListener('click', closeEditarClienteModal);
+  document.getElementById('btn-cancel-editar-cliente-modal').addEventListener('click', closeEditarClienteModal);
+  document.getElementById('form-editar-cliente').addEventListener('submit', handleEditarClienteSubmit);
+  
+  document.getElementById('btn-close-eliminar-cliente-modal').addEventListener('click', closeEliminarClienteModal);
+  document.getElementById('btn-cancel-eliminar-cliente-modal').addEventListener('click', closeEliminarClienteModal);
+  document.getElementById('btn-confirmar-eliminar-cliente').addEventListener('click', handleConfirmarEliminarCliente);
   
   setupTabSwitching();
 

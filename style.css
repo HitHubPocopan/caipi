@@ -752,14 +752,25 @@ body {
   margin-top: var(--spacing-xs);
 }
 
+.pago-status-container {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1px 4px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .pago-status-circle {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
   border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .pago-status-circle.pago-pendiente {
@@ -772,6 +783,13 @@ body {
 
 .pago-status-circle.pago-pagado {
   background-color: #4CAF50;
+}
+
+.personas-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
 }
 
 /* Ocupación completa */
@@ -910,6 +928,22 @@ body {
 .btn-danger:hover {
   background-color: #da190b;
   box-shadow: var(--shadow-sm);
+}
+
+.btn-info {
+  background-color: #2196F3;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #1976D2;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  gap: 4px;
 }
 
 .btn-close {
@@ -1314,6 +1348,21 @@ body {
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-md);
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.cliente-header-title {
+  flex: 1;
+}
+
+.cliente-header-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .cliente-header h3, .nota-header h3, .pago-header h3 {

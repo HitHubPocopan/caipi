@@ -422,6 +422,71 @@ async function getAllReservas() {
   }
 }
 
+async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
+  try {
+    const { data: clienteActual, error: fetchError } = await supabase
+      .from('clientes')
+      .select('nombre, telefono')
+      .eq('id', clienteId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const oldTelefono = clienteActual.telefono;
+
+    const { data: clienteUpdated, error: updateError } = await supabase
+      .from('clientes')
+      .update({ nombre: nuevoNombre, telefono: nuevoTelefono })
+      .eq('id', clienteId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    const { error: updateReservasError } = await supabase
+      .from('reservas')
+      .update({
+        cliente_nombre: nuevoNombre,
+        cliente_telefono: nuevoTelefono
+      })
+      .eq('cliente_telefono', oldTelefono);
+
+    if (updateReservasError) throw updateReservasError;
+
+    return clienteUpdated;
+  } catch (error) {
+    console.error('Error updating cliente:', error);
+    throw error;
+  }
+}
+
+async function deleteCliente(clienteId) {
+  try {
+    const { data: cliente } = await supabase
+      .from('clientes')
+      .select('telefono')
+      .eq('id', clienteId)
+      .single();
+
+    if (cliente) {
+      await supabase
+        .from('reservas')
+        .delete()
+        .eq('cliente_telefono', cliente.telefono);
+    }
+
+    const { error } = await supabase
+      .from('clientes')
+      .delete()
+      .eq('id', clienteId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting cliente:', error);
+    throw error;
+  }
+}
+
 function exportClientsToExcel(clientes) {
   const workbook = XLSX.utils.book_new();
   
