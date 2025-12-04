@@ -731,6 +731,7 @@ function closeEditarClienteModal() {
 function openEliminarClienteModal(clienteId, nombre) {
   currentEliminarClienteId = clienteId;
   currentEliminarClienteNombre = nombre;
+  intentosFallidosEliminar = 0;
   document.getElementById('eliminar-cliente-clave').value = '';
   document.getElementById('modal-eliminar-cliente').classList.remove('hidden');
   document.getElementById('eliminar-cliente-clave').focus();
@@ -741,6 +742,7 @@ function closeEliminarClienteModal() {
   document.getElementById('eliminar-cliente-clave').value = '';
   currentEliminarClienteId = null;
   currentEliminarClienteNombre = null;
+  intentosFallidosEliminar = 0;
 }
 
 async function handleEditarClienteSubmit(e) {
@@ -754,6 +756,21 @@ async function handleEditarClienteSubmit(e) {
     return;
   }
   
+  if (nuevoNombre.length < 2 || nuevoNombre.length > 100) {
+    showToast('El nombre debe tener entre 2 y 100 caracteres', 'warning');
+    return;
+  }
+  
+  if (nuevoTelefono.length < 7) {
+    showToast('El teléfono debe tener al menos 7 caracteres', 'warning');
+    return;
+  }
+  
+  if (!currentEditingClienteId) {
+    showToast('Error: Cliente no identificado', 'error');
+    return;
+  }
+  
   try {
     await updateCliente(currentEditingClienteId, nuevoNombre, nuevoTelefono);
     await renderClientesList();
@@ -761,15 +778,36 @@ async function handleEditarClienteSubmit(e) {
     showToast('Cliente actualizado exitosamente', 'success');
   } catch (error) {
     console.error('Error al actualizar cliente:', error);
-    showToast('Error al actualizar el cliente', 'error');
+    const errorMsg = error?.message || 'Error al actualizar el cliente';
+    showToast(errorMsg, 'error');
   }
 }
 
 async function handleConfirmarEliminarCliente() {
   const clave = document.getElementById('eliminar-cliente-clave').value;
   
+  if (intentosFallidosEliminar >= MAX_INTENTOS_ELIMINAR) {
+    showToast(`Demasiados intentos fallidos. Por seguridad, se cierra esta operación.`, 'error');
+    closeEliminarClienteModal();
+    intentosFallidosEliminar = 0;
+    return;
+  }
+  
   if (clave !== '71') {
-    showToast('Clave incorrecta', 'error');
+    intentosFallidosEliminar++;
+    const intentosRestantes = MAX_INTENTOS_ELIMINAR - intentosFallidosEliminar;
+    if (intentosRestantes > 0) {
+      showToast(`Clave incorrecta. Intentos restantes: ${intentosRestantes}`, 'error');
+    } else {
+      showToast(`Demasiados intentos fallidos. Operación cancelada.`, 'error');
+      closeEliminarClienteModal();
+      intentosFallidosEliminar = 0;
+    }
+    return;
+  }
+  
+  if (!currentEliminarClienteId) {
+    showToast('Error: Cliente no identificado', 'error');
     return;
   }
   
@@ -777,16 +815,20 @@ async function handleConfirmarEliminarCliente() {
     await deleteCliente(currentEliminarClienteId);
     await renderClientesList();
     closeEliminarClienteModal();
+    intentosFallidosEliminar = 0;
     showToast('Cliente eliminado exitosamente', 'success');
   } catch (error) {
     console.error('Error al eliminar cliente:', error);
-    showToast('Error al eliminar el cliente', 'error');
+    const errorMsg = error?.message || 'Error al eliminar el cliente';
+    showToast(errorMsg, 'error');
   }
 }
 
 let currentEditingClienteId = null;
 let currentEliminarClienteId = null;
 let currentEliminarClienteNombre = null;
+let intentosFallidosEliminar = 0;
+const MAX_INTENTOS_ELIMINAR = 3;
 
 function setupEventListeners() {
   document.getElementById('btn-volver').addEventListener('click', goBackToMain);

@@ -121,10 +121,10 @@ function createDayElement(day, dateStr, reservas, diasReserva, year, month) {
         statusContainer.appendChild(pagoCirculo);
       }
 
-      if (cantidadPersonas) {
+      if (cantidadPersonas && typeof cantidadPersonas === 'number' && cantidadPersonas > 0) {
         const personasLabel = document.createElement('div');
         personasLabel.className = 'personas-count';
-        personasLabel.textContent = cantidadPersonas;
+        personasLabel.textContent = cantidadPersonas.toString();
         statusContainer.appendChild(personasLabel);
       }
       

@@ -423,16 +423,40 @@ async function getAllReservas() {
 }
 
 async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
+  if (!clienteId || typeof clienteId !== 'string' || clienteId.trim().length === 0) {
+    throw new Error('ID del cliente inválido');
+  }
+  if (!nuevoNombre || typeof nuevoNombre !== 'string' || nuevoNombre.trim().length === 0) {
+    throw new Error('Nombre del cliente no puede estar vacío');
+  }
+  if (!nuevoTelefono || typeof nuevoTelefono !== 'string' || nuevoTelefono.trim().length === 0) {
+    throw new Error('Teléfono del cliente no puede estar vacío');
+  }
+
   try {
     const { data: clienteActual, error: fetchError } = await supabase
       .from('clientes')
-      .select('nombre, telefono')
+      .select('id, nombre, telefono')
       .eq('id', clienteId)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError || !clienteActual) {
+      throw new Error('Cliente no encontrado');
+    }
 
     const oldTelefono = clienteActual.telefono;
+
+    if (nuevoTelefono !== oldTelefono) {
+      const { data: existente, error: checkError } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('telefono', nuevoTelefono)
+        .single();
+
+      if (!checkError && existente) {
+        throw new Error('El teléfono ya está registrado en otro cliente');
+      }
+    }
 
     const { data: clienteUpdated, error: updateError } = await supabase
       .from('clientes')
@@ -441,17 +465,32 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
       .select()
       .single();
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      throw new Error('Error al actualizar cliente: ' + updateError.message);
+    }
 
-    const { error: updateReservasError } = await supabase
+    const { data: reservas, error: checkReservasError } = await supabase
       .from('reservas')
-      .update({
-        cliente_nombre: nuevoNombre,
-        cliente_telefono: nuevoTelefono
-      })
+      .select('id')
       .eq('cliente_telefono', oldTelefono);
 
-    if (updateReservasError) throw updateReservasError;
+    if (checkReservasError) {
+      throw new Error('Error al verificar reservas: ' + checkReservasError.message);
+    }
+
+    if (reservas && reservas.length > 0) {
+      const { error: updateReservasError } = await supabase
+        .from('reservas')
+        .update({
+          cliente_nombre: nuevoNombre,
+          cliente_telefono: nuevoTelefono
+        })
+        .eq('cliente_telefono', oldTelefono);
+
+      if (updateReservasError) {
+        throw new Error('Error al actualizar reservas: ' + updateReservasError.message);
+      }
+    }
 
     return clienteUpdated;
   } catch (error) {
@@ -461,26 +500,49 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
 }
 
 async function deleteCliente(clienteId) {
+  if (!clienteId || typeof clienteId !== 'string' || clienteId.trim().length === 0) {
+    throw new Error('ID del cliente inválido');
+  }
+
   try {
-    const { data: cliente } = await supabase
+    const { data: cliente, error: fetchError } = await supabase
       .from('clientes')
-      .select('telefono')
+      .select('id, telefono')
       .eq('id', clienteId)
       .single();
 
-    if (cliente) {
-      await supabase
+    if (fetchError || !cliente) {
+      throw new Error('Cliente no encontrado');
+    }
+
+    const { data: reservas, error: checkError } = await supabase
+      .from('reservas')
+      .select('id')
+      .eq('cliente_telefono', cliente.telefono);
+
+    if (checkError) {
+      throw new Error('Error al verificar reservas: ' + checkError.message);
+    }
+
+    if (reservas && reservas.length > 0) {
+      const { error: deleteReservasError } = await supabase
         .from('reservas')
         .delete()
         .eq('cliente_telefono', cliente.telefono);
+
+      if (deleteReservasError) {
+        throw new Error('Error al eliminar reservas: ' + deleteReservasError.message);
+      }
     }
 
-    const { error } = await supabase
+    const { error: deleteClienteError } = await supabase
       .from('clientes')
       .delete()
       .eq('id', clienteId);
 
-    if (error) throw error;
+    if (deleteClienteError) {
+      throw new Error('Error al eliminar cliente: ' + deleteClienteError.message);
+    }
   } catch (error) {
     console.error('Error deleting cliente:', error);
     throw error;
