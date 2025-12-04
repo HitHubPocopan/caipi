@@ -411,7 +411,7 @@ async function getAllReservas() {
   try {
     const { data, error } = await supabase
       .from('reservas')
-      .select('*')
+      .select('*, cabanas(numero)')
       .order('fecha_inicio', { ascending: false });
 
     if (error) throw error;

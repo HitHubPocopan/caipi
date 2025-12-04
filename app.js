@@ -477,7 +477,7 @@ async function renderPagosTab() {
         pagosCompletados.forEach(reserva => {
           const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
           const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
-          const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+          const cabin = `Cabaña #${reserva.cabanas && reserva.cabanas.numero ? reserva.cabanas.numero : '?'}`;
           
           html += '<div class="pago-card pago-card-completado">';
           html += '<div class="pago-card-header">';
@@ -508,7 +508,7 @@ async function renderPagosTab() {
         const deuda = (reserva.monto_total || 0) - (reserva.monto_pagado || 0);
         const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
         const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
-        const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+        const cabin = `Cabaña #${reserva.cabanas && reserva.cabanas.numero ? reserva.cabanas.numero : '?'}`;
         const estadoColor = reserva.estado_pago === 'parcial' ? 'parcial' : 'pendiente';
         
         html += `<div class="pago-card pago-card-${estadoColor}" data-cliente="${reserva.cliente_nombre.toLowerCase()}">`;
