@@ -670,7 +670,7 @@ async function renderClientesList() {
         cliente.reservas.forEach(reserva => {
           const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
           const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
-          const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+          const cabin = `Cabaña #${reserva.cabanas && reserva.cabanas.numero ? reserva.cabanas.numero : '?'}`;
           
           html += '<div class="reserva-item">';
           html += `<span class="reserva-cabin">${cabin}</span>`;
