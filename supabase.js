@@ -1,18 +1,17 @@
 const SUPABASE_URL = 'https://gcgwfjrzljrhaugfxjuq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZ3dmanJ6bGpyaGF1Z2Z4anVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MjE1MDgsImV4cCI6MjA4MDE5NzUwOH0.KwuBFSHreSYcl0gfCsuv4VikeeGGvWX9GyLLxUrUozg';
 
-let supabase;
+window.mySupabaseClient = null;
 
 async function initSupabase() {
   const { createClient } = window.supabase;
-  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-  return supabase;
+  window.mySupabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+  return window.mySupabaseClient;
 }
 
 async function getCabanas() {
   try {
-    const { data, error } = await supabase
-      .from('cabanas')
+    const { data, error } = await window.mySupabaseClient.from('cabanas')
       .select('*')
       .eq('activa', true)
       .order('numero', { ascending: true });
@@ -28,8 +27,7 @@ async function getCabanas() {
 
 async function updateCabana(cabanaId, data) {
   try {
-    const { data: result, error } = await supabase
-      .from('cabanas')
+    const { data: result, error } = await window.mySupabaseClient.from('cabanas')
       .update({
         capacidad: parseInt(data.capacidad),
         precio_base: parseFloat(data.precio_base),
@@ -52,8 +50,7 @@ async function updateCabana(cabanaId, data) {
 
 async function getOrCreateCliente(nombre, telefono) {
   try {
-    const { data: existing, error: queryError } = await supabase
-      .from('clientes')
+    const { data: existing, error: queryError } = await window.mySupabaseClient.from('clientes')
       .select('*')
       .eq('telefono', telefono)
       .single();
@@ -62,8 +59,7 @@ async function getOrCreateCliente(nombre, telefono) {
       return existing;
     }
 
-    const { data: newCliente, error: createError } = await supabase
-      .from('clientes')
+    const { data: newCliente, error: createError } = await window.mySupabaseClient.from('clientes')
       .insert({ nombre, telefono })
       .select()
       .single();
@@ -82,8 +78,7 @@ async function getOrCreateCliente(nombre, telefono) {
 
 async function getAllClientes() {
   try {
-    const { data, error } = await supabase
-      .from('clientes')
+    const { data, error } = await window.mySupabaseClient.from('clientes')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -101,8 +96,7 @@ async function getAllClientes() {
 
 async function getClientesWithReservas() {
   try {
-    const { data: clientes, error: clientesError } = await supabase
-      .from('clientes')
+    const { data: clientes, error: clientesError } = await window.mySupabaseClient.from('clientes')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -111,8 +105,7 @@ async function getClientesWithReservas() {
       throw clientesError;
     }
 
-    const { data: reservas, error: reservasError } = await supabase
-      .from('reservas')
+    const { data: reservas, error: reservasError } = await window.mySupabaseClient.from('reservas')
       .select('*, cabanas(numero)')
       .order('fecha_inicio', { ascending: false });
 
@@ -138,8 +131,7 @@ async function getReservasByMonth(cabanaId, year, month) {
     const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
     const endDate = new Date(year, month, 0).toISOString().split('T')[0];
 
-    const { data, error } = await supabase
-      .from('reservas')
+    const { data, error } = await window.mySupabaseClient.from('reservas')
       .select('id, cliente_nombre, cliente_telefono, cantidad_personas, fecha_inicio, fecha_fin, estado_pago, monto_total, monto_pagado, notas, created_at')
       .eq('cabana_id', cabanaId)
       .lte('fecha_inicio', endDate)
@@ -156,8 +148,7 @@ async function getReservasByMonth(cabanaId, year, month) {
 
 async function getDiasReserva(reservaId) {
   try {
-    const { data, error } = await supabase
-      .from('dias_reserva')
+    const { data, error } = await window.mySupabaseClient.from('dias_reserva')
       .select('*')
       .eq('reserva_id', reservaId)
       .order('fecha', { ascending: true });
@@ -172,7 +163,7 @@ async function getDiasReserva(reservaId) {
 
 async function checkOverlap(cabanaId, fechaInicio, fechaFin, excludeReservaId = null) {
   try {
-    let query = supabase
+    let query = window.mySupabaseClientClient
       .from('reservas')
       .select('id, fecha_inicio, fecha_fin')
       .eq('cabana_id', cabanaId);
@@ -207,8 +198,7 @@ async function createReserva(cabanaId, clienteNombre, clienteTelefono, cantidadP
   try {
     await getOrCreateCliente(clienteNombre, clienteTelefono);
 
-    const { data: newReserva, error: errorReserva } = await supabase
-      .from('reservas')
+    const { data: newReserva, error: errorReserva } = await window.mySupabaseClient.from('reservas')
       .insert([
         {
           cabana_id: cabanaId,
@@ -242,8 +232,7 @@ async function createReserva(cabanaId, clienteNombre, clienteTelefono, cantidadP
       });
     }
 
-    const { error: errorDias } = await supabase
-      .from('dias_reserva')
+    const { error: errorDias } = await window.mySupabaseClient.from('dias_reserva')
       .insert(diasInsert);
 
     if (errorDias) throw errorDias;
@@ -259,8 +248,7 @@ async function createReserva(cabanaId, clienteNombre, clienteTelefono, cantidadP
 
 async function updateReserva(reservaId, clienteNombre, clienteTelefono, cantidadPersonas, fechaInicio, fechaFin, estadoPago, montoTotal, montoPagado, notas, diasOcupacion) {
   try {
-    const { error: errorUpdate } = await supabase
-      .from('reservas')
+    const { error: errorUpdate } = await window.mySupabaseClient.from('reservas')
       .update({
         cliente_nombre: clienteNombre,
         cliente_telefono: clienteTelefono,
@@ -276,8 +264,7 @@ async function updateReserva(reservaId, clienteNombre, clienteTelefono, cantidad
 
     if (errorUpdate) throw errorUpdate;
 
-    await supabase
-      .from('dias_reserva')
+    await window.mySupabaseClient.from('dias_reserva')
       .delete()
       .eq('reserva_id', reservaId);
 
@@ -294,8 +281,7 @@ async function updateReserva(reservaId, clienteNombre, clienteTelefono, cantidad
       });
     }
 
-    const { error: errorDias } = await supabase
-      .from('dias_reserva')
+    const { error: errorDias } = await window.mySupabaseClient.from('dias_reserva')
       .insert(diasInsert);
 
     if (errorDias) throw errorDias;
@@ -311,13 +297,11 @@ async function updateReserva(reservaId, clienteNombre, clienteTelefono, cantidad
 
 async function deleteReserva(reservaId) {
   try {
-    await supabase
-      .from('dias_reserva')
+    await window.mySupabaseClient.from('dias_reserva')
       .delete()
       .eq('reserva_id', reservaId);
 
-    const { error } = await supabase
-      .from('reservas')
+    const { error } = await window.mySupabaseClient.from('reservas')
       .delete()
       .eq('id', reservaId);
 
@@ -334,8 +318,7 @@ async function deleteReserva(reservaId) {
 
 async function getReservaById(reservaId) {
   try {
-    const { data, error } = await supabase
-      .from('reservas')
+    const { data, error } = await window.mySupabaseClient.from('reservas')
       .select('*')
       .eq('id', reservaId)
       .single();
@@ -350,8 +333,7 @@ async function getReservaById(reservaId) {
 
 async function saveNotaAdicional(reservaId, nota, completada = false) {
   try {
-    const { data, error } = await supabase
-      .from('reservas')
+    const { data, error } = await window.mySupabaseClient.from('reservas')
       .update({
         notas: nota,
         nota_completada: completada
@@ -370,8 +352,7 @@ async function saveNotaAdicional(reservaId, nota, completada = false) {
 
 async function updateNotaCompletion(reservaId, completada) {
   try {
-    const { data, error } = await supabase
-      .from('reservas')
+    const { data, error } = await window.mySupabaseClient.from('reservas')
       .update({
         nota_completada: completada
       })
@@ -388,8 +369,7 @@ async function updateNotaCompletion(reservaId, completada) {
 
 async function updatePaymentStatus(reservaId, estadoPago, montoPagado) {
   try {
-    const { data, error } = await supabase
-      .from('reservas')
+    const { data, error } = await window.mySupabaseClient.from('reservas')
       .update({
         estado_pago: estadoPago,
         monto_pagado: parseFloat(montoPagado)
@@ -409,8 +389,7 @@ async function updatePaymentStatus(reservaId, estadoPago, montoPagado) {
 
 async function getAllReservas() {
   try {
-    const { data, error } = await supabase
-      .from('reservas')
+    const { data, error } = await window.mySupabaseClient.from('reservas')
       .select('*, cabanas(numero)')
       .order('fecha_inicio', { ascending: false });
 
@@ -434,8 +413,7 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
   }
 
   try {
-    const { data: clienteActual, error: fetchError } = await supabase
-      .from('clientes')
+    const { data: clienteActual, error: fetchError } = await window.mySupabaseClient.from('clientes')
       .select('id, nombre, telefono')
       .eq('id', clienteId)
       .single();
@@ -447,8 +425,7 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
     const oldTelefono = clienteActual.telefono;
 
     if (nuevoTelefono !== oldTelefono) {
-      const { data: existente, error: checkError } = await supabase
-        .from('clientes')
+      const { data: existente, error: checkError } = await window.mySupabaseClient.from('clientes')
         .select('id')
         .eq('telefono', nuevoTelefono)
         .single();
@@ -458,8 +435,7 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
       }
     }
 
-    const { data: clienteUpdated, error: updateError } = await supabase
-      .from('clientes')
+    const { data: clienteUpdated, error: updateError } = await window.mySupabaseClient.from('clientes')
       .update({ nombre: nuevoNombre, telefono: nuevoTelefono })
       .eq('id', clienteId)
       .select()
@@ -469,8 +445,7 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
       throw new Error('Error al actualizar cliente: ' + updateError.message);
     }
 
-    const { data: reservas, error: checkReservasError } = await supabase
-      .from('reservas')
+    const { data: reservas, error: checkReservasError } = await window.mySupabaseClient.from('reservas')
       .select('id')
       .eq('cliente_telefono', oldTelefono);
 
@@ -479,8 +454,7 @@ async function updateCliente(clienteId, nuevoNombre, nuevoTelefono) {
     }
 
     if (reservas && reservas.length > 0) {
-      const { error: updateReservasError } = await supabase
-        .from('reservas')
+      const { error: updateReservasError } = await window.mySupabaseClient.from('reservas')
         .update({
           cliente_nombre: nuevoNombre,
           cliente_telefono: nuevoTelefono
@@ -505,8 +479,7 @@ async function deleteCliente(clienteId) {
   }
 
   try {
-    const { data: cliente, error: fetchError } = await supabase
-      .from('clientes')
+    const { data: cliente, error: fetchError } = await window.mySupabaseClient.from('clientes')
       .select('id, telefono')
       .eq('id', clienteId)
       .single();
@@ -515,8 +488,7 @@ async function deleteCliente(clienteId) {
       throw new Error('Cliente no encontrado');
     }
 
-    const { data: reservas, error: checkError } = await supabase
-      .from('reservas')
+    const { data: reservas, error: checkError } = await window.mySupabaseClient.from('reservas')
       .select('id')
       .eq('cliente_telefono', cliente.telefono);
 
@@ -525,8 +497,7 @@ async function deleteCliente(clienteId) {
     }
 
     if (reservas && reservas.length > 0) {
-      const { error: deleteReservasError } = await supabase
-        .from('reservas')
+      const { error: deleteReservasError } = await window.mySupabaseClient.from('reservas')
         .delete()
         .eq('cliente_telefono', cliente.telefono);
 
@@ -535,8 +506,7 @@ async function deleteCliente(clienteId) {
       }
     }
 
-    const { error: deleteClienteError } = await supabase
-      .from('clientes')
+    const { error: deleteClienteError } = await window.mySupabaseClient.from('clientes')
       .delete()
       .eq('id', clienteId);
 
@@ -580,3 +550,4 @@ function showToast(message, type = 'info') {
     }, 300);
   }, 3000);
 }
+

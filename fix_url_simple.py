@@ -1,0 +1,8 @@
+f = open(r'c:\Users\54225\Desktop\ProyectoCaipi\supabase.js', 'r')
+c = f.read()
+f.close()
+c = c.replace('supabaseClient.co', 'supabase.co')
+f = open(r'c:\Users\54225\Desktop\ProyectoCaipi\supabase.js', 'w')
+f.write(c)
+f.close()
+print('Fixed')

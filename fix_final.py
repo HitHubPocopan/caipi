@@ -1,0 +1,7 @@
+c = open(r'c:\Users\54225\Desktop\ProyectoCaipi\supabase.js').read()
+c = c.replace('await supabase.', 'await supabaseClient.')
+c = c.replace('let query = supabase', 'let query = supabaseClient')
+c = c.replace(' = supabase.', ' = supabaseClient.')
+c = c.replace('const { data', 'const { data')  
+open(r'c:\Users\54225\Desktop\ProyectoCaipi\supabase.js', 'w').write(c)
+print('Fixed')

@@ -56,7 +56,7 @@ function setupLoginForm() {
 async function init() {
   await initSupabase();
 
-  loadCabanas();
+  await loadCabanas();
   setupEventListeners();
 }
 
@@ -389,7 +389,7 @@ async function renderNotasTab() {
       if (reserva.notas && reserva.notas.trim()) {
         const entrada = new Date(reserva.fecha_inicio).toLocaleDateString('es-AR');
         const salida = new Date(reserva.fecha_fin).toLocaleDateString('es-AR');
-        const cabin = `Cabaña #${reserva.cabana_id ? reserva.cabana_id.slice(0, 1) : '?'}`;
+        const cabin = `Cabaña #${reserva.cabanas && reserva.cabanas.numero ? reserva.cabanas.numero : '?'}`;
         const isCompleted = reserva.nota_completada ? 'checked' : '';
         
         html += '<div class="nota-section">';
