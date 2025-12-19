@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificación de Setup</title>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: 40px auto; }
+    .test { margin: 20px 0; padding: 15px; border-radius: 5px; }
+    .pass { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .fail { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    h1 { color: #333; }
+    code { background: #f5f5f5; padding: 2px 6px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Verificación de Setup - Sistema de Cabañas</h1>
+  
+  <div id="results"></div>
+  
+  <script>
+    const results = document.getElementById('results');
+    
+    function addTest(name, passed, details = '') {
+      const div = document.createElement('div');
+      div.className = `test ${passed ? 'pass' : 'fail'}`;
+      div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? '<br>' + details : ''}`;
+      results.appendChild(div);
+    }
+    
+    // Test 1: Supabase library
+    if (typeof window.supabase !== 'undefined') {
+      addTest('Librería Supabase cargada', true, `Object: ${typeof window.supabase}`);
+    } else {
+      addTest('Librería Supabase cargada', false, 'window.supabase is undefined');
+    }
+    
+    // Test 2: Verificar que archivos locales existen
+    const scripts = document.querySelectorAll('script[src]');
+    const localScripts = ['supabase.js', 'calendar.js', 'reservas.js', 'app.js'];
+    
+    fetch('supabase.js', {method: 'HEAD'})
+      .then(r => addTest('supabase.js accesible', r.ok))
+      .catch(() => addTest('supabase.js accesible', false, 'Error al acceder'));
+      
+    fetch('app.js', {method: 'HEAD'})
+      .then(r => addTest('app.js accesible', r.ok))
+      .catch(() => addTest('app.js accesible', false, 'Error al acceder'));
+      
+    fetch('calendar.js', {method: 'HEAD'})
+      .then(r => addTest('calendar.js accesible', r.ok))
+      .catch(() => addTest('calendar.js accesible', false, 'Error al acceder'));
+    
+    // Test 3: Verificar que index.html existe
+    fetch('index.html', {method: 'HEAD'})
+      .then(r => addTest('index.html accesible', r.ok))
+      .catch(() => addTest('index.html accesible', false));
+    
+    // Test 4: Revisar contenido de index.html para Supabase
+    fetch('index.html')
+      .then(r => r.text())
+      .then(html => {
+        const hasSupabase = html.includes('@supabase/supabase-js');
+        addTest('index.html contiene CDN de Supabase', hasSupabase);
+      })
+      .catch(() => addTest('index.html contiene CDN de Supabase', false));
+    
+    // Test 5: Revisar que app.js tiene cambios de cabanas
+    fetch('app.js')
+      .then(r => r.text())
+      .then(js => {
+        const hasCabanasFix = js.includes('reserva.cabanas.numero');
+        addTest('app.js tiene fix de números de cabaña', hasCabanasFix, 
+          hasCabanasFix ? 'Se detectó: reserva.cabanas.numero' : 'No se encontró la corrección');
+      })
+      .catch(() => addTest('app.js verificado', false));
+    
+    // Test 6: Revisar que supabase.js tiene cabanas en queries
+    fetch('supabase.js')
+      .then(r => r.text())
+      .then(js => {
+        const hasJoin = js.match(/select\('\*,\s*cabanas\(numero\)'\)/g);
+        addTest('supabase.js tiene joins a cabanas', !!hasJoin, 
+          hasJoin ? `Se encontraron ${hasJoin.length} queries con join` : 'No se encontraron joins');
+      })
+      .catch(() => addTest('supabase.js verificado', false));
+    
+    setTimeout(() => {
+      const summary = document.createElement('div');
+      summary.style.marginTop = '30px';
+      summary.style.padding = '20px';
+      summary.style.backgroundColor = '#e7f3ff';
+      summary.style.borderRadius = '5px';
+      summary.innerHTML = '<strong>Estado:</strong> Si todos los tests pasan, el sistema está listo. Abre <a href="index.html">index.html</a> para comenzar.';
+      results.appendChild(summary);
+    }, 2000);
+  </script>
+</body>
+</html>
